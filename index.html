@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trading Journal 30 Hari</title>
+
+<!-- ApexCharts (Candlestick) -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<!-- html2pdf untuk unduh PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container" id="journal">
+
+<h1>Trading Journal - 30 Hari</h1>
+
+<div class="card top-card">
+    <div>
+        <label>Saldo Awal</label>
+        <input type="number" id="saldoAwal" value="0">
+    </div>
+
+    <div>
+        <label>Mata Uang</label>
+        <select id="currency">
+            <option value="IDR">IDR (Rp)</option>
+            <option value="USD">USD ($)</option>
+        </select>
+    </div>
+
+    <div>
+        <label>Tanggal Mulai</label>
+        <input type="date" id="startDate" value="2026-02-12">
+    </div>
+
+    <div>
+        <button id="downloadPdf">Download PDF</button>
+    </div>
+</div>
+
+<div class="card table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>Tanggal</th>
+                <th>P/L</th>
+                <th>Saldo</th>
+            </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+    </table>
+</div>
+
+<div class="card chart-card">
+    <div id="chart"></div>
+</div>
+
+</div>
+
+<script src="main.js"></script>
+</body>
+</html>
