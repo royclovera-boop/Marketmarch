@@ -3,12 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trading Journal 30 Hari</title>
+<title>Trading Journal Range</title>
 
-<!-- ApexCharts (Candlestick) -->
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-
-<!-- html2pdf untuk unduh PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <link rel="stylesheet" href="style.css">
@@ -17,9 +14,10 @@
 
 <div class="container" id="journal">
 
-<h1>Trading Journal - 30 Hari</h1>
+<h1>Trading Journal</h1>
 
 <div class="card top-card">
+
     <div>
         <label>Saldo Awal</label>
         <input type="number" id="saldoAwal" value="0">
@@ -35,12 +33,22 @@
 
     <div>
         <label>Tanggal Mulai</label>
-        <input type="date" id="startDate" value="2026-02-12">
+        <input type="date" id="startDate">
+    </div>
+
+    <div>
+        <label>Tanggal Akhir</label>
+        <input type="date" id="endDate">
+    </div>
+
+    <div>
+        <button id="generateRange">Tampilkan</button>
     </div>
 
     <div>
         <button id="downloadPdf">Download PDF</button>
     </div>
+
 </div>
 
 <div class="card table-card">
