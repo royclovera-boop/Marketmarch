@@ -1,126 +1,145 @@
-let chart;
-const tbody = document.getElementById("tbody");
+/* ================= FIREBASE ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyAuWAjpoztwQtCnrHyV18kRA5AaDFcsyGo",
+  authDomain: "jurnal-trade-pro.firebaseapp.com",
+  projectId: "jurnal-trade-pro"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
-function formatCurrency(val) {
-    let currency = document.getElementById("currency").value;
-    if (currency === "USD") {
-        return "$ " + val.toLocaleString("en-US");
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+/* ================= OTP SYSTEM ================= */
+let generatedOTP = "";
+let tempEmail = "";
+let tempPassword = "";
+let otpExpireTime = null;
+
+// ================= REGISTER =================
+const registerForm = document.getElementById("register-form");
+const otpSection = document.getElementById("otp-section");
+const otpInput = document.getElementById("otp-input");
+const verifyBtn = document.getElementById("verifyBtn");
+
+registerForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  tempEmail = document.getElementById("email").value.trim();
+  tempPassword = document.getElementById("password").value.trim();
+
+  if(!tempEmail || !tempPassword){
+    alert("Email dan password wajib diisi!");
+    return;
+  }
+
+  // Cek email sudah terdaftar
+  const methods = await auth.fetchSignInMethodsForEmail(tempEmail);
+  if(methods.length > 0){
+    alert("Email sudah terdaftar!");
+    return;
+  }
+
+  // Generate OTP 6 digit
+  generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+  otpExpireTime = Date.now() + 5*60*1000; // OTP berlaku 5 menit
+
+  // Kirim OTP via EmailJS
+  emailjs.send("service_phfouoy", "template_7375nye", {
+    name: tempEmail,
+    email: tempEmail,
+    message: "Kode OTP kamu adalah: " + generatedOTP
+  }).then(() => {
+    alert("OTP dikirim ke email ✅");
+    otpSection.style.display = "block";
+  }).catch(err=>{
+    alert("Gagal kirim OTP ❌");
+    console.log(err);
+  });
+});
+
+// ================= VERIFY OTP =================
+verifyBtn?.addEventListener("click", async () => {
+  const userOTP = otpInput.value.trim();
+  if(!userOTP){
+    alert("Masukkan OTP terlebih dahulu!");
+    return;
+  }
+
+  if(Date.now() > otpExpireTime){
+    alert("OTP sudah expired! Silakan daftar ulang.");
+    otpSection.style.display = "none";
+    return;
+  }
+
+  if(userOTP !== generatedOTP){
+    alert("OTP salah ❌");
+    return;
+  }
+
+  try{
+    // Buat akun Firebase
+    const userCredential = await auth.createUserWithEmailAndPassword(tempEmail, tempPassword);
+    const uid = userCredential.user.uid;
+
+    // Simpan data user di Firestore
+    const expireDate = new Date();
+    expireDate.setDate(expireDate.getDate()+30);
+
+    await db.collection("users").doc(uid).set({
+      email: tempEmail,
+      isActive: true,
+      isAdmin: false,
+      subscription: true,
+      expireDate: expireDate,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    alert("Registrasi berhasil & akun aktif 30 hari ✅");
+    window.location.href = "login.html";
+
+  } catch(err){
+    alert("Gagal membuat akun: " + err.message);
+  }
+});
+
+// ================= LOGIN =================
+async function login(){
+  const email = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if(!email || !password){
+    alert("Email dan password wajib diisi!");
+    return;
+  }
+
+  try{
+    const userCredential = await auth.signInWithEmailAndPassword(email,password);
+    const user = userCredential.user;
+
+    const doc = await db.collection("users").doc(user.uid).get();
+    if(!doc.exists){
+      alert("Data user tidak ditemukan!");
+      return;
+    }
+
+    const data = doc.data();
+    const now = new Date();
+
+    if(data.isAdmin){
+      alert("Login Berhasil (Admin) ✅");
+      window.location.href = "index.html";
+    } else if(data.subscription && now < data.expireDate.toDate()){
+      alert("Login Berhasil ✅");
+      window.location.href = "index.html";
     } else {
-        return "Rp " + val.toLocaleString("id-ID");
-    }
-}
-
-function formatDate(date) {
-    let d = date.getDate().toString().padStart(2, '0');
-    let m = (date.getMonth() + 1).toString().padStart(2, '0');
-    let y = date.getFullYear();
-    return `${d}-${m}-${y}`;
-}
-
-function generateRange() {
-
-    let start = new Date(document.getElementById("startDate").value);
-    let end = new Date(document.getElementById("endDate").value);
-
-    if (!document.getElementById("startDate").value ||
-        !document.getElementById("endDate").value) {
-        alert("Pilih tanggal dulu!");
-        return;
+      alert("Langganan belum aktif atau sudah habis!");
     }
 
-    if (end < start) {
-        alert("Tanggal akhir tidak boleh sebelum tanggal mulai!");
-        return;
-    }
-
-    tbody.innerHTML = "";
-
-    let diffDays = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
-
-    for (let i = 0; i < diffDays; i++) {
-
-        let currentDate = new Date(start);
-        currentDate.setDate(start.getDate() + i);
-
-        tbody.innerHTML += `
-        <tr>
-            <td class="tanggal">${formatDate(currentDate)}</td>
-            <td><input type="number" class="pl"></td>
-            <td class="saldo">0</td>
-        </tr>`;
-    }
-
-    hitung();
+  } catch(err){
+    alert("Email atau password salah ❌");
+    console.error(err);
+  }
 }
 
-function hitung() {
-
-    let saldoAwal = parseFloat(document.getElementById("saldoAwal").value) || 0;
-    let saldo = saldoAwal;
-    let prev = saldoAwal;
-    let candleData = [];
-
-    const rows = document.querySelectorAll("#tbody tr");
-
-    rows.forEach((row, index) => {
-
-        let input = row.querySelector(".pl");
-        let saldoCell = row.querySelector(".saldo");
-
-        let pl = parseFloat(input.value) || 0;
-        saldo += pl;
-
-        saldoCell.innerText = formatCurrency(saldo);
-
-        let open = prev;
-        let close = saldo;
-        let high = Math.max(open, close);
-        let low = Math.min(open, close);
-
-        candleData.push({
-            x: index + 1,
-            y: [open, high, low, close]
-        });
-
-        prev = saldo;
-    });
-
-    updateChart(candleData);
-}
-
-function updateChart(data) {
-
-    if (chart) chart.destroy();
-
-    chart = new ApexCharts(document.querySelector("#chart"), {
-        chart: {
-            type: 'candlestick',
-            height: 400,
-            background: '#161b22'
-        },
-        series: [{ data: data }],
-        theme: { mode: 'dark' },
-        plotOptions: {
-            candlestick: {
-                colors: {
-                    upward: '#00ff88',
-                    downward: '#ff4d4d'
-                }
-            }
-        },
-        xaxis: { type: 'category' }
-    });
-
-    chart.render();
-}
-
-document.getElementById("generateRange")
-    .addEventListener("click", generateRange);
-
-document.addEventListener("input", hitung);
-
-document.getElementById("downloadPdf")
-    .addEventListener("click", () => {
-        html2pdf().from(document.getElementById("journal"))
-                  .save("Trading_Journal.pdf");
-    });
+// ================= EXPORT LOGIN =================
+window.login = login;

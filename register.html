@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register</title>
+<style>
+body {margin:0; font-family:Arial; background:#0e1117; color:white; display:flex; justify-content:center; align-items:center; height:100vh;}
+.register-box{background:#00ff88; padding:30px; border-radius:10px; width:320px; text-align:center; color:black;}
+input{width:100%; padding:10px; margin:10px 0; border:none; border-radius:5px;}
+button{width:100%; padding:10px; background:black; color:#00ff88; font-weight:bold; border:none; border-radius:5px; cursor:pointer;}
+button:hover{opacity:0.8;}
+</style>
+</head>
+<body>
+<div class="register-box">
+<h2>REGISTER</h2>
+<form id="register-form">
+    <input type="email" id="email" placeholder="Email" required><br>
+    <input type="password" id="password" placeholder="Password" required><br>
+    <button type="submit">Daftar</button>
+</form>
+
+<div style="margin-top:10px;">
+    <button onclick="window.location.href='chet.html'">Pusat Bantuan</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<script>
+emailjs.init("stnt0K-nOUmuV7qd0");
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAuWAjpoztwQtCnrHyV18kRA5AaDFcsyGo",
+    authDomain: "jurnal-trade-pro.firebaseapp.com",
+    projectId: "jurnal-trade-pro"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// ================= REGISTER =================
+let tempEmail = "";
+let tempPassword = "";
+
+document.getElementById("register-form").addEventListener("submit", async function(e){
+    e.preventDefault();
+    tempEmail = document.getElementById("email").value;
+    tempPassword = document.getElementById("password").value;
+
+    const existing = await auth.fetchSignInMethodsForEmail(tempEmail);
+    if(existing.length > 0){ alert("Email sudah terdaftar!"); return; }
+
+    const generatedOTP = Math.floor(100000 + Math.random()*900000).toString();
+    await db.collection("otpPending").doc(tempEmail).set({
+        otp: generatedOTP,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    emailjs.send("service_phfouoy", "template_7375nye", {
+        name: tempEmail,
+        email: tempEmail,
+        message: "Kode OTP kamu adalah: " + generatedOTP
+    }).then(()=> {
+        alert("OTP dikirim ke email ✅");
+        // OTP verification langsung tanpa reset password (opsional)
+    }).catch(err=> { alert("Gagal kirim OTP ❌"); console.error(err); });
+
+    try{
+        const userCredential = await auth.createUserWithEmailAndPassword(tempEmail,tempPassword);
+        const uid = userCredential.user.uid;
+        const expireDate = new Date();
+        expireDate.setMonth(expireDate.getMonth()+1);
+
+        await db.collection("users").doc(uid).set({
+            email: tempEmail,
+            isAdmin:false,
+            isActive:true,
+            subscription:true,
+            expireDate:expireDate,
+            createdAt:firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert("Akun berhasil dibuat & aktif ✅");
+        window.location.href="login.html";
+    } catch(err){ alert("Gagal membuat akun: "+err.message); }
+});
+</script>
+</body>
+</html>

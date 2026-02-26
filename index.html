@@ -3,26 +3,78 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trading Journal Range</title>
+<title>Trading Journal</title>
 
+<!-- ApexCharts & html2pdf -->
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
 <link rel="stylesheet" href="style.css">
+<style>
+/* Sidebar */
+#sidebar {
+    position: fixed; left: -220px; top: 0; width: 220px; height: 100%;
+    background: #111; color: #fff; transition: 0.3s; z-index: 999;
+    padding-top: 60px;
+}
+#sidebar.active { left: 0; }
+#sidebar a {
+    display: block; padding: 12px 20px; color: #fff; text-decoration: none;
+    transition: 0.2s;
+}
+#sidebar a:hover { background: #333; }
+#sidebarToggle {
+    position: fixed; top: 15px; left: 15px;
+    background: #222; color: #fff; border: none;
+    font-size: 24px; cursor: pointer; border-radius: 6px;
+    width: 40px; height: 40px; z-index: 1000;
+}
+
+/* Kontainer bergeser saat sidebar terbuka */
+.container { transition: margin-left 0.3s; margin-left: 0; }
+.container.shift { margin-left: 220px; }
+
+/* Logout button */
+#logoutBtn {
+    position: fixed; top: 15px; right: 15px;
+    background: red; color: white; border: none;
+    padding: 8px 15px; border-radius: 6px;
+    cursor: pointer; z-index: 999;
+}
+</style>
 </head>
 <body>
 
-<div class="container" id="journal">
+<!-- Sidebar Toggle -->
+<button id="sidebarToggle">☰</button>
 
+<!-- Sidebar -->
+<div id="sidebar">
+        <a href="setting.html">⚙️ setting </a>
+    <a href="home.html">🏠 Home</a>
+    <a href="index.html">📄 Dashboard</a>
+    <a href="toko.html">🛒 Toko</a>
+    <a href="backtes.html">📈 Backtes</a>
+    <a href="#" id="adminSidebar" style="display:none;">🛠️ Admin Log</a>
+</div>
+
+<!-- Logout -->
+<button id="logoutBtn">Logout</button>
+
+<!-- Journal Container -->
+<div class="container" id="journal">
 <h1>Trading Journal</h1>
 
 <div class="card top-card">
-
     <div>
         <label>Saldo Awal</label>
         <input type="number" id="saldoAwal" value="0">
     </div>
-
     <div>
         <label>Mata Uang</label>
         <select id="currency">
@@ -30,25 +82,20 @@
             <option value="USD">USD ($)</option>
         </select>
     </div>
-
     <div>
         <label>Tanggal Mulai</label>
         <input type="date" id="startDate">
     </div>
-
     <div>
         <label>Tanggal Akhir</label>
         <input type="date" id="endDate">
     </div>
-
     <div>
         <button id="generateRange">Tampilkan</button>
     </div>
-
     <div>
         <button id="downloadPdf">Download PDF</button>
     </div>
-
 </div>
 
 <div class="card table-card">
@@ -66,10 +113,205 @@
 
 <div class="card chart-card">
     <div id="chart"></div>
+    <div class="rank-box">
+        <h3>RANK TRADING</h3>
+        <div id="rankResult">🥇 Newbie</div>
+    </div>
+</div>
+
+<!-- Tombol perpanjang & WA -->
+<div style="text-align:center; margin-top:20px;">
+    <button id="renewSubscription" style="
+        background: orange; 
+        color: black; 
+        border: none; 
+        padding: 10px 20px; 
+        border-radius: 8px; 
+        font-weight: bold; 
+        cursor: pointer;">
+        Perpanjang Akun
+    </button>
+    <p style="margin-top:5px; font-size:0.9em; color:#ccc;">
+        Kirim bukti transfer via WhatsApp setelah klik tombol
+    </p>
+    <a href="https://wa.me/6281528590989" target="_blank" style="display:inline-block; margin-top:5px;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" width="40">
+    </a>
 </div>
 
 </div>
 
-<script src="main.js"></script>
+<script>
+let chart;
+const tbody = document.getElementById("tbody");
+
+// ================= FIREBASE =================
+const firebaseConfig = {
+    apiKey: "AIzaSyAuWAjpoztwQtCnrHyV18kRA5AaDFcsyGo",
+    authDomain: "jurnal-trade-pro.firebaseapp.com",
+    projectId: "jurnal-trade-pro"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// ================= SIDEBAR TOGGLE =================
+const sidebar = document.getElementById("sidebar");
+const sidebarToggle = document.getElementById("sidebarToggle");
+const container = document.querySelector(".container");
+
+sidebarToggle.addEventListener("click", ()=>{
+    sidebar.classList.toggle("active");
+    container.classList.toggle("shift");
+});
+
+// ================= FORMAT UTILITY =================
+function formatCurrency(val){
+    let currency = document.getElementById("currency").value;
+    return currency==="USD"? "$ "+val.toLocaleString("en-US") : "Rp "+val.toLocaleString("id-ID");
+}
+function formatDate(date){
+    let d = date.getDate().toString().padStart(2,'0');
+    let m = (date.getMonth()+1).toString().padStart(2,'0');
+    let y = date.getFullYear();
+    return `${d}-${m}-${y}`;
+}
+
+// ================= GENERATE RANGE =================
+function generateRange(){
+    let startVal = document.getElementById("startDate").value;
+    let endVal = document.getElementById("endDate").value;
+    if(!startVal || !endVal){ alert("Pilih tanggal dulu!"); return; }
+
+    let start = new Date(startVal);
+    let end = new Date(endVal);
+    if(end<start){ alert("Tanggal akhir tidak boleh sebelum tanggal mulai!"); return; }
+
+    tbody.innerHTML="";
+    let diffDays = Math.floor((end-start)/(1000*60*60*24))+1;
+    for(let i=0;i<diffDays;i++){
+        let currentDate = new Date(start);
+        currentDate.setDate(start.getDate()+i);
+        tbody.innerHTML += `<tr>
+            <td class="tanggal">${formatDate(currentDate)}</td>
+            <td><input type="number" class="pl"></td>
+            <td class="saldo">0</td>
+        </tr>`;
+    }
+    hitung();
+}
+
+// ================= HITUNG =================
+function hitung(){
+    let saldoAwal = parseFloat(document.getElementById("saldoAwal").value)||0;
+    let saldo = saldoAwal;
+    let prev = saldoAwal;
+    let candleData = [];
+
+    document.querySelectorAll("#tbody tr").forEach((row,index)=>{
+        let input = row.querySelector(".pl");
+        let saldoCell = row.querySelector(".saldo");
+        let pl = parseFloat(input.value)||0;
+
+        saldo += pl;
+        saldoCell.innerText = formatCurrency(saldo);
+
+        let open = prev;
+        let close = saldo;
+        let high = Math.max(open,close);
+        let low = Math.min(open,close);
+
+        candleData.push({x:index+1,y:[open,high,low,close]});
+        prev = saldo;
+    });
+
+    updateChart(candleData);
+    updateRank(saldo - saldoAwal);
+}
+
+// ================= CHART =================
+function updateChart(data){
+    if(chart) chart.destroy();
+    chart = new ApexCharts(document.querySelector("#chart"),{
+        chart:{type:'candlestick',height:400,background:'#161b22'},
+        series:[{data:data}],
+        theme:{mode:'dark'},
+        plotOptions:{candlestick:{colors:{upward:'#00ff88',downward:'#ff4d4d'}}},
+        xaxis:{type:'category'}
+    });
+    chart.render();
+}
+
+// ================= RANK =================
+function updateRank(totalProfit){
+    let rank="🥉 Newbie";
+    if(totalProfit>=100000000) rank="🏆 Goldierd 🏆";
+    else if(totalProfit>=10000000) rank="🏆 Legend";
+    else if(totalProfit>=1000000) rank="🎖️ Master 🎖️";
+    else if(totalProfit>=100000) rank="🎖️ Elit";
+    else if(totalProfit>=10000) rank="🥇 Pro";
+    else if(totalProfit>=1000) rank="🥈 Rookie";
+    else if(totalProfit<-10000000) rank="☣️ Diseasesc";
+    else if(totalProfit<-1000000) rank="👾 High Holler";
+    else if(totalProfit<-100000) rank="🎰 Gembler";
+    else if(totalProfit<-10000) rank="📳 Noob";
+    else if(totalProfit<-1000) rank="⚠️ Newbot";
+
+    document.getElementById("rankResult").innerText = rank;
+}
+
+// ================= LOGIN & ADMIN =================
+const adminSidebar = document.getElementById("adminSidebar");
+adminSidebar.style.display = "none";
+
+auth.onAuthStateChanged(async user=>{
+    if(!user) return window.location.href="login.html";
+
+    const doc = await db.collection("users").doc(user.uid).get();
+    if(!doc.exists) return window.location.href="pay.html";
+
+    const data = doc.data();
+
+    if(data.expireDate && new Date() > data.expireDate.toDate()){
+        alert("Langganan Anda sudah habis!");
+        window.location.href="pay.html";
+        return;
+    }
+
+    if(data.Isadmin){
+        adminSidebar.style.display = "block";
+        adminSidebar.addEventListener("click", ()=> window.location.href="adminlog.html");
+    }
+
+    // ================= AUTO-LOGOUT IDLE 1 MENIT =================
+    const LOGOUT_TIME = 60 * 1000; // 1 menit
+    let logoutTimer;
+
+    function resetLogoutTimer(){
+        clearTimeout(logoutTimer);
+        logoutTimer = setTimeout(()=>{
+            alert("Anda tidak aktif selama 1 menit, logout otomatis.");
+            auth.signOut().then(()=> window.location.href="login.html");
+        }, LOGOUT_TIME);
+    }
+
+    ['mousemove','mousedown','keydown','scroll','touchstart'].forEach(evt=>{
+        window.addEventListener(evt, resetLogoutTimer);
+    });
+
+    resetLogoutTimer(); // start timer saat login berhasil
+});
+
+// ================= EVENTS =================
+document.getElementById("generateRange").addEventListener("click", generateRange);
+document.addEventListener("input", hitung);
+
+document.getElementById("downloadPdf").addEventListener("click",()=>{
+    html2pdf().from(document.getElementById("journal")).save("Trading_Journal.pdf");
+});
+
+document.getElementById("renewSubscription").addEventListener("click",()=> window.location.href="pay.html");
+document.getElementById("logoutBtn").addEventListener("click", ()=> auth.signOut().then(()=>window.location.href="login.html"));
+</script>
 </body>
 </html>

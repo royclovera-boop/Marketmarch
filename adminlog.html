@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Log - Chat & Konfirmasi Transfer</title>
+<style>
+body {
+  background: #0f121b;
+  color: #fff;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+h1 {
+  text-align: center;
+  color: #00ff99;
+  margin-bottom: 20px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+th, td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid #333;
+}
+th { background: #1c1f2a; }
+tr:hover { background: #1a1d28; }
+button.chat, button.confirm {
+  background: #00ff99;
+  color: black;
+  border: none;
+  border-radius: 15px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+}
+button.chat:hover, button.confirm:hover { background: #00cc77; }
+button.delete { background: #ff4444; margin-left:5px; }
+button.delete:hover { background: #cc3333; }
+#chatSection {
+  max-width: 600px;
+  margin: 0 auto;
+  display: none;
+  background: #1c1f2a;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+#chatWindow {
+  height: 400px;
+  overflow-y: auto;
+  background: #222632;
+  padding: 15px;
+  border-radius: 15px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#chatWindow p {
+  padding: 10px 15px;
+  border-radius: 20px;
+  max-width: 80%;
+  word-wrap: break-word;
+}
+.user-msg { background: #00ff99; color: black; align-self: flex-end; box-shadow: 0 2px 6px rgba(0,255,153,0.4); }
+.admin-msg { background: #cccccc; color: black; align-self: flex-start; box-shadow: 0 2px 6px rgba(200,200,200,0.4); }
+.pending-msg { background: #ffb74d; color: black; align-self: center; font-style: italic; }
+.chat-input { display: flex; gap: 10px; }
+.chat-input input { flex: 1; padding: 12px; border-radius: 20px; border: none; outline: none; background: #1c1f2a; color: #fff; }
+.chat-input button { padding: 12px 20px; border-radius: 20px; border: none; background: #00ff99; color: black; font-weight: bold; cursor: pointer; transition: 0.3s; }
+.chat-input button:hover { background: #00cc77; }
+#endChatBtn { margin-top: 10px; width: 100%; padding: 12px; border-radius: 20px; background: #ff4c4c; border: none; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
+#endChatBtn:hover { background: #cc3a3a; }
+#userList tr td.status { font-weight: bold; }
+.status-Pending { color: #ffb74d; }
+.status-Aktif { color: #00ff99; }
+.status-Confirmed { color: #00ccff; font-weight:bold; }
+/* Scrollbar custom */
+#chatWindow::-webkit-scrollbar { width: 8px; }
+#chatWindow::-webkit-scrollbar-thumb { background-color: #00ff99; border-radius: 10px; }
+#chatWindow::-webkit-scrollbar-track { background: #1c1f2a; }
+</style>
+</head>
+<body>
+
+<h1>Admin Log - Chat & Konfirmasi Transfer</h1>
+
+<table>
+<thead>
+<tr>
+<th>Email</th>
+<th>Status Chat</th>
+<th>Status Transfer</th>
+<th>Action Chat</th>
+<th>Action Transfer</th>
+</tr>
+</thead>
+<tbody id="userList"></tbody>
+</table>
+
+<div id="chatSection">
+  <h2 id="chatWith"></h2>
+  <div id="chatWindow"></div>
+  <div class="chat-input">
+    <input type="text" id="adminMsg" placeholder="Tulis pesan...">
+    <button onclick="sendAdminMsg()">Kirim</button>
+  </div>
+  <button id="endChatBtn" onclick="endChat()">Akhiri Chat</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAuWAjpoztwQtCnrHyV18kRA5AaDFcsyGo",
+  authDomain: "jurnal-trade-pro.firebaseapp.com",
+  projectId: "jurnal-trade-pro"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const userList = document.getElementById("userList");
+const chatWindow = document.getElementById("chatWindow");
+const chatSection = document.getElementById("chatSection");
+let selectedUserEmail = null;
+let unsubscribeChat = null;
+
+// cek admin login
+auth.onAuthStateChanged(async user=>{
+  if(!user){ window.location.href="login.html"; return; }
+  const doc = await db.collection("users").doc(user.uid).get();
+  if(!doc.exists || !doc.data().Isadmin){ alert("Hanya admin!"); window.location.href="login.html"; return; }
+  loadPendingChats();
+});
+
+// load user pending/aktif dari tempChat + pendingPayments
+async function loadPendingChats(){
+  const chatSnapshot = await db.collection("tempChat").get();
+  const paymentsSnapshot = await db.collection("pendingPayments")
+                                   .where("status","==","pending").get(); // hanya pending
+
+  const allEmails = new Set();
+  chatSnapshot.docs.forEach(doc=>allEmails.add(doc.id));
+  paymentsSnapshot.docs.forEach(doc=>allEmails.add(doc.data().email));
+
+  userList.innerHTML="";
+
+  allEmails.forEach(email=>{
+    const chatDoc = chatSnapshot.docs.find(d=>d.id===email);
+    const paymentDoc = paymentsSnapshot.docs.find(d=>d.data().email===email);
+
+    const messages = chatDoc?.data()?.messages || [];
+    const chatStatus = messages.some(m=>m.sender==="admin") ? "Aktif" : "Pending";
+
+    const transferStatus = paymentDoc ? paymentDoc.data().status : "-";
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${email}</td>
+      <td class="status status-${chatStatus}">${chatStatus}</td>
+      <td class="status status-${transferStatus}">${transferStatus}</td>
+      <td><button class="chat" onclick="openChat('${email}')">Chat</button></td>
+      <td>
+        ${transferStatus==="pending"?`
+          <button class="confirm" onclick="confirmTransfer('${paymentDoc.id}','${email}')">Konfirmasi</button>
+          <button class="delete" onclick="deletePendingTransfer('${paymentDoc.id}','${email}')">Hapus</button>
+        `:"-"}
+      </td>
+    `;
+    userList.appendChild(tr);
+  });
+}
+
+// buka chat
+function openChat(email){
+  selectedUserEmail = email;
+  chatSection.style.display="block";
+  document.getElementById("chatWith").innerText = "Chat dengan: " + email;
+  chatWindow.innerHTML="";
+
+  if(unsubscribeChat) unsubscribeChat();
+
+  const chatDoc = db.collection("tempChat").doc(email);
+  unsubscribeChat = chatDoc.onSnapshot(snap=>{
+    chatWindow.innerHTML="";
+    const messages = snap.data()?.messages || [];
+    let adminHasReplied = false;
+    messages.forEach(item=>{
+      const p = document.createElement("p");
+      p.textContent = item.message;
+      if(item.sender==="user") p.className="user-msg";
+      else { p.className="admin-msg"; adminHasReplied=true; }
+      chatWindow.appendChild(p);
+    });
+
+    if(!adminHasReplied){
+      const pending = document.createElement("p");
+      pending.textContent="Menunggu admin membalas...";
+      pending.className="pending-msg";
+      chatWindow.appendChild(pending);
+    }
+
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  });
+}
+
+// kirim pesan admin
+function sendAdminMsg(){
+  const input = document.getElementById("adminMsg");
+  const msg = input.value.trim();
+  if(!msg || !selectedUserEmail) return;
+
+  const chatDoc = db.collection("tempChat").doc(selectedUserEmail);
+  chatDoc.update({
+    messages: firebase.firestore.FieldValue.arrayUnion({sender:"admin", message:msg, timestamp:Date.now()})
+  });
+  input.value="";
+}
+
+// akhiri chat
+function endChat(){
+  if(!selectedUserEmail) return;
+  db.collection("tempChat").doc(selectedUserEmail).delete();
+  chatSection.style.display="none";
+  selectedUserEmail=null;
+  chatWindow.innerHTML="";
+}
+
+// konfirmasi transfer
+async function confirmTransfer(paymentId,email){
+  try{
+    await db.collection("pendingPayments").doc(paymentId).update({status:"confirmed"});
+    const usersSnap = await db.collection("users").where("email","==",email).get();
+    if(!usersSnap.empty){
+      const userDoc = usersSnap.docs[0];
+      const userData = userDoc.data();
+      let currentExpire = userData.expireDate ? userData.expireDate.toDate() : new Date();
+      currentExpire.setDate(currentExpire.getDate()+30);
+      await db.collection("users").doc(userDoc.id).update({expireDate: firebase.firestore.Timestamp.fromDate(currentExpire)});
+    }
+    alert("Transfer dikonfirmasi, akun diperpanjang 30 hari ✅");
+    loadPendingChats();
+  } catch(err){
+    console.error(err);
+    alert("Gagal konfirmasi transfer ❌");
+  }
+}
+
+// hapus pending transfer
+async function deletePendingTransfer(paymentId,email){
+  const confirmDelete = confirm(`Yakin ingin menghapus pending transfer ${email}?`);
+  if(!confirmDelete) return;
+  try{
+    await db.collection("pendingPayments").doc(paymentId).delete();
+    alert("Pending transfer berhasil dihapus ❌");
+    loadPendingChats();
+  } catch(err){
+    console.error(err);
+    alert("Gagal menghapus pending transfer ❌");
+  }
+}
+</script>
+
+</body>
+</html>

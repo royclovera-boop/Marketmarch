@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pusat Bantuan - Chat</title>
+<style>
+/* Body & Font */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #0f121b;
+    color: #fff;
+    padding: 20px;
+}
+
+/* Judul */
+h2 {
+    text-align: center;
+    color: #00ff88;
+    margin-bottom: 20px;
+}
+
+/* Form & Chat Section */
+#emailForm, #chatSection {
+    max-width: 500px;
+    margin: 0 auto 20px;
+    background: #161b22;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+/* Email Input */
+#emailForm input {
+    width: calc(100% - 20px);
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+}
+
+/* Email Button */
+#emailForm button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 25px;
+    border: none;
+    background: #00ff88;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#emailForm button:hover {
+    background: #00cc66;
+}
+
+/* Chat Window */
+#chatWindow {
+    height: 400px;
+    overflow-y: auto;
+    background: #0f131a;
+    padding: 15px;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scroll-behavior: smooth;
+}
+
+/* Bubble Pesan */
+#chatWindow p {
+    max-width: 75%;
+    padding: 12px 18px;
+    border-radius: 25px;
+    word-wrap: break-word;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Bubble User */
+.user-msg {
+    background: linear-gradient(135deg, #00ff88, #00cc66);
+    color: black;
+    align-self: flex-end;
+    border-bottom-right-radius: 5px;
+}
+
+/* Bubble Admin */
+.admin-msg {
+    background: linear-gradient(135deg, #ccc, #aaa);
+    color: black;
+    align-self: flex-start;
+    border-bottom-left-radius: 5px;
+}
+
+/* Pending */
+.pending-msg {
+    background: #ff9800;
+    color: black;
+    align-self: center;
+    font-style: italic;
+    padding: 8px 12px;
+    border-radius: 15px;
+    opacity: 0.9;
+}
+
+/* Chat Input */
+.chat-input {
+    display: flex;
+    gap: 10px;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 12px 20px;
+    border-radius: 25px;
+    border: none;
+    outline: none;
+    background: #1c1f2a;
+    color: #00ff88;
+    box-shadow: inset 0 0 8px rgba(0,255,136,0.2);
+    transition: 0.2s;
+}
+
+.chat-input input:focus {
+    box-shadow: inset 0 0 12px rgba(0,255,136,0.5);
+}
+
+.chat-input button {
+    padding: 12px 20px;
+    border-radius: 25px;
+    border: none;
+    background: #00ff88;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.chat-input button:hover {
+    background: #00cc66;
+}
+
+/* End Chat */
+#endChatBtn {
+    margin-top: 10px;
+    padding: 12px;
+    width: 100%;
+    border-radius: 25px;
+    border: none;
+    background: #ff4c4c;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+#endChatBtn:hover {
+    background: #cc0000;
+}
+
+/* Scrollbar */
+#chatWindow::-webkit-scrollbar {
+    width: 8px;
+}
+#chatWindow::-webkit-scrollbar-thumb {
+    background-color: #00ff88;
+    border-radius: 10px;
+}
+#chatWindow::-webkit-scrollbar-track {
+    background: #161b22;
+}
+
+/* Animasi */
+@keyframes fadeIn {
+    from {opacity:0; transform:translateY(10px);}
+    to {opacity:1; transform:translateY(0);}
+}
+</style>
+</head>
+<body>
+
+<h2>Pusat Bantuan</h2>
+
+<div id="emailForm">
+    <input type="email" id="userEmailInput" placeholder="Masukkan email Anda" required>
+    <button onclick="startChat()">Masuk Chat</button>
+</div>
+
+<div id="chatSection" style="display:none;">
+    <h3 id="chatWith"></h3>
+    <div id="chatWindow"></div>
+    <div class="chat-input">
+        <input type="text" id="userMsg" placeholder="Tulis pesan...">
+        <button onclick="sendMsg()">Kirim</button>
+    </div>
+    <button id="endChatBtn" onclick="endChat()">Akhiri Chat</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAuWAjpoztwQtCnrHyV18kRA5AaDFcsyGo",
+  authDomain: "jurnal-trade-pro.firebaseapp.com",
+  projectId: "jurnal-trade-pro"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let userEmail = null;
+let unsubscribe = null;
+
+async function startChat(){
+    const emailInput = document.getElementById("userEmailInput").value.trim();
+    if(!emailInput){ alert("Masukkan email!"); return; }
+
+    const userQuery = await db.collection("users").where("email","==",emailInput).get();
+    if(userQuery.empty){ alert("Email tidak terdaftar."); return; }
+
+    userEmail = emailInput;
+    document.getElementById("emailForm").style.display="none";
+    document.getElementById("chatSection").style.display="block";
+    document.getElementById("chatWith").innerText = "Chat dengan Admin (Email: "+userEmail+")";
+
+    const chatDoc = db.collection("tempChat").doc(userEmail);
+    const docSnap = await chatDoc.get();
+    if(!docSnap.exists) await chatDoc.set({messages:[]});
+
+    if(unsubscribe) unsubscribe();
+    unsubscribe = chatDoc.onSnapshot(snap=>{
+        const data = snap.data();
+        const chatWindow = document.getElementById("chatWindow");
+        chatWindow.innerHTML="";
+        let adminOnline = false;
+
+        if(data && data.messages){
+            data.messages.forEach(item=>{
+                const p = document.createElement("p");
+                p.textContent = item.message;
+                if(item.sender==="user") p.className="user-msg";
+                else if(item.sender==="admin"){ p.className="admin-msg"; adminOnline=true; }
+                chatWindow.appendChild(p);
+            });
+        }
+
+        if(!adminOnline){
+            const pending = document.createElement("p");
+            pending.textContent = "Menunggu admin membalas...";
+            pending.className="pending-msg";
+            chatWindow.appendChild(pending);
+        }
+
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    });
+}
+
+function sendMsg(){
+    const input = document.getElementById("userMsg");
+    const msg = input.value.trim();
+    if(!msg || !userEmail) return;
+
+    const chatDoc = db.collection("tempChat").doc(userEmail);
+    chatDoc.update({
+        messages: firebase.firestore.FieldValue.arrayUnion({sender:"user", message:msg, timestamp:Date.now()})
+    });
+    input.value="";
+}
+
+function endChat(){
+    if(!userEmail) return;
+    db.collection("tempChat").doc(userEmail).delete();
+    if(unsubscribe) unsubscribe();
+    userEmail=null;
+    document.getElementById("chatSection").style.display="none";
+    document.getElementById("emailForm").style.display="block";
+    document.getElementById("userEmailInput").value="";
+}
+</script>
+</body>
+</html>
