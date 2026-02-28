@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Trading Journal</title>
 
+<!-- 🔒 PREVENT FLASH BEFORE AUTH -->
+<style>
+body { display: none; }
+</style>
+
 <!-- ApexCharts & html2pdf -->
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -118,7 +123,6 @@
     </div>
 </div>
 
-<!-- Tombol perpanjang & WA -->
 <div style="text-align:center; margin-top:20px;">
     <button id="renewSubscription" style="
         background: orange; 
@@ -144,7 +148,6 @@
 let chart;
 const tbody = document.getElementById("tbody");
 
-// ================= FIREBASE =================
 const firebaseConfig = {
     apiKey: "AIzaSyAuWAjpoztwQtCnrHyV18kRA5AaDFcsyGo",
     authDomain: "jurnal-trade-pro.firebaseapp.com",
@@ -154,7 +157,6 @@ if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// ================= SIDEBAR TOGGLE =================
 const sidebar = document.getElementById("sidebar");
 const sidebarToggle = document.getElementById("sidebarToggle");
 const container = document.querySelector(".container");
@@ -164,7 +166,6 @@ sidebarToggle.addEventListener("click", ()=>{
     container.classList.toggle("shift");
 });
 
-// ================= FORMAT UTILITY =================
 function formatCurrency(val){
     let currency = document.getElementById("currency").value;
     return currency==="USD"? "$ "+val.toLocaleString("en-US") : "Rp "+val.toLocaleString("id-ID");
@@ -176,7 +177,6 @@ function formatDate(date){
     return `${d}-${m}-${y}`;
 }
 
-// ================= GENERATE RANGE =================
 function generateRange(){
     let startVal = document.getElementById("startDate").value;
     let endVal = document.getElementById("endDate").value;
@@ -200,7 +200,6 @@ function generateRange(){
     hitung();
 }
 
-// ================= HITUNG =================
 function hitung(){
     let saldoAwal = parseFloat(document.getElementById("saldoAwal").value)||0;
     let saldo = saldoAwal;
@@ -228,7 +227,6 @@ function hitung(){
     updateRank(saldo - saldoAwal);
 }
 
-// ================= CHART =================
 function updateChart(data){
     if(chart) chart.destroy();
     chart = new ApexCharts(document.querySelector("#chart"),{
@@ -241,7 +239,6 @@ function updateChart(data){
     chart.render();
 }
 
-// ================= RANK =================
 function updateRank(totalProfit){
     let rank="🥉 Newbie";
     if(totalProfit>=100000000) rank="🏆 Goldierd 🏆";
@@ -259,21 +256,26 @@ function updateRank(totalProfit){
     document.getElementById("rankResult").innerText = rank;
 }
 
-// ================= LOGIN & ADMIN =================
 const adminSidebar = document.getElementById("adminSidebar");
 adminSidebar.style.display = "none";
 
 auth.onAuthStateChanged(async user=>{
-    if(!user) return window.location.href="login.html";
+    if(!user){
+        window.location.replace("login.html");
+        return;
+    }
 
     const doc = await db.collection("users").doc(user.uid).get();
-    if(!doc.exists) return window.location.href="pay.html";
+    if(!doc.exists){
+        window.location.replace("pay.html");
+        return;
+    }
 
     const data = doc.data();
 
     if(data.expireDate && new Date() > data.expireDate.toDate()){
         alert("Langganan Anda sudah habis!");
-        window.location.href="pay.html";
+        window.location.replace("pay.html");
         return;
     }
 
@@ -282,15 +284,17 @@ auth.onAuthStateChanged(async user=>{
         adminSidebar.addEventListener("click", ()=> window.location.href="adminlog.html");
     }
 
-    // ================= AUTO-LOGOUT IDLE 1 MENIT =================
-    const LOGOUT_TIME = 60 * 1000; // 1 menit
+    // 🔓 TAMPILKAN HALAMAN SETELAH VALID
+    document.body.style.display = "block";
+
+    const LOGOUT_TIME = 60 * 1000;
     let logoutTimer;
 
     function resetLogoutTimer(){
         clearTimeout(logoutTimer);
         logoutTimer = setTimeout(()=>{
             alert("Anda tidak aktif selama 1 menit, logout otomatis.");
-            auth.signOut().then(()=> window.location.href="login.html");
+            auth.signOut().then(()=> window.location.replace("login.html"));
         }, LOGOUT_TIME);
     }
 
@@ -298,10 +302,9 @@ auth.onAuthStateChanged(async user=>{
         window.addEventListener(evt, resetLogoutTimer);
     });
 
-    resetLogoutTimer(); // start timer saat login berhasil
+    resetLogoutTimer();
 });
 
-// ================= EVENTS =================
 document.getElementById("generateRange").addEventListener("click", generateRange);
 document.addEventListener("input", hitung);
 
@@ -310,7 +313,7 @@ document.getElementById("downloadPdf").addEventListener("click",()=>{
 });
 
 document.getElementById("renewSubscription").addEventListener("click",()=> window.location.href="pay.html");
-document.getElementById("logoutBtn").addEventListener("click", ()=> auth.signOut().then(()=>window.location.href="login.html"));
+document.getElementById("logoutBtn").addEventListener("click", ()=> auth.signOut().then(()=>window.location.replace("login.html")));
 </script>
 </body>
-</html>
+        </html>
