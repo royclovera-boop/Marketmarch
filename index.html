@@ -1,27 +1,27 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>trading journal</title>
+<title>Trading Journal</title>
 
-<!-- 🔒 prevent flash before auth -->
+<!-- 🔒 PREVENT FLASH BEFORE AUTH -->
 <style>
 body { display: none; }
 </style>
 
-<!-- apexcharts & html2pdf -->
+<!-- ApexCharts & html2pdf -->
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-<!-- firebase -->
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
 <link rel="stylesheet" href="style.css">
 <style>
-/* sidebar */
+/* Sidebar */
 #sidebar {
     position: fixed; left: -220px; top: 0; width: 220px; height: 100%;
     background: #111; color: #fff; transition: 0.3s; z-index: 999;
@@ -33,17 +33,19 @@ body { display: none; }
     transition: 0.2s;
 }
 #sidebar a:hover { background: #333; }
-#sidebartoggle {
+#sidebarToggle {
     position: fixed; top: 15px; left: 15px;
     background: #222; color: #fff; border: none;
     font-size: 24px; cursor: pointer; border-radius: 6px;
     width: 40px; height: 40px; z-index: 1000;
 }
+
+/* Kontainer bergeser saat sidebar terbuka */
 .container { transition: margin-left 0.3s; margin-left: 0; }
 .container.shift { margin-left: 220px; }
 
-/* logout button */
-#logoutbtn {
+/* Logout button */
+#logoutBtn {
     position: fixed; top: 15px; right: 15px;
     background: red; color: white; border: none;
     padding: 8px 15px; border-radius: 6px;
@@ -53,51 +55,51 @@ body { display: none; }
 </head>
 <body>
 
-<!-- sidebar toggle -->
-<button id="sidebartoggle">☰</button>
+<!-- Sidebar Toggle -->
+<button id="sidebarToggle">☰</button>
 
-<!-- sidebar -->
+<!-- Sidebar -->
 <div id="sidebar">
-    <a href="home.html">🏠 home</a>
-    <a href="index.html">📊 dashboard</a>
-    <a href="toko.html">🛒 toko</a>
-    <a href="backtes.html">👤 profil</a>
-    <a href="#" id="adminsidebar" style="display:none;">🛠️ admin log</a>
-    <a href="setting.html">⚙️ setting</a>
+    <a href="home.html">🏠 Home</a>
+    <a href="index.html">📊 Dashboard</a>
+    <a href="toko.html">🛒 Toko</a>
+    <a href="backtes.html">👤 Profil</a>
+    <a href="#" id="adminSidebar" style="display:none;">🛠️ Admin Log</a>
+        <a href="setting.html">⚙️ setting</a>
 </div>
 
-<!-- logout -->
-<button id="logoutbtn">logout</button>
+<!-- Logout -->
+<button id="logoutBtn">Logout</button>
 
-<!-- journal container -->
+<!-- Journal Container -->
 <div class="container" id="journal">
-<h1>trading journal</h1>
+<h1>Trading Journal</h1>
 
 <div class="card top-card">
     <div>
-        <label>saldo awal</label>
-        <input type="number" id="saldoawal" value="0">
+        <label>Saldo Awal</label>
+        <input type="number" id="saldoAwal" value="0">
     </div>
     <div>
-        <label>mata uang</label>
+        <label>Mata Uang</label>
         <select id="currency">
-            <option value="idr">idr (rp)</option>
-            <option value="usd">usd ($)</option>
+            <option value="IDR">IDR (Rp)</option>
+            <option value="USD">USD ($)</option>
         </select>
     </div>
     <div>
-        <label>tanggal mulai</label>
-        <input type="date" id="startdate">
+        <label>Tanggal Mulai</label>
+        <input type="date" id="startDate">
     </div>
     <div>
-        <label>tanggal akhir</label>
-        <input type="date" id="enddate">
+        <label>Tanggal Akhir</label>
+        <input type="date" id="endDate">
     </div>
     <div>
-        <button id="generaterange">tampilkan</button>
+        <button id="generateRange">Tampilkan</button>
     </div>
     <div>
-        <button id="downloadpdf">download pdf</button>
+        <button id="downloadPdf">Download PDF</button>
     </div>
 </div>
 
@@ -105,9 +107,9 @@ body { display: none; }
     <table>
         <thead>
             <tr>
-                <th>tanggal</th>
-                <th>p/l</th>
-                <th>saldo</th>
+                <th>Tanggal</th>
+                <th>P/L</th>
+                <th>Saldo</th>
             </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -117,13 +119,13 @@ body { display: none; }
 <div class="card chart-card">
     <div id="chart"></div>
     <div class="rank-box">
-        <h3>rank trading</h3>
-        <div id="rankresult">🥇 newbie</div>
+        <h3>RANK TRADING</h3>
+        <div id="rankResult">🥇 Newbie</div>
     </div>
 </div>
 
 <div style="text-align:center; margin-top:20px;">
-    <button id="renewsubscription" style="
+    <button id="renewSubscription" style="
         background: orange; 
         color: black; 
         border: none; 
@@ -131,13 +133,13 @@ body { display: none; }
         border-radius: 8px; 
         font-weight: bold; 
         cursor: pointer;">
-        perpanjang akun
+        Perpanjang Akun
     </button>
     <p style="margin-top:5px; font-size:0.9em; color:#ccc;">
-        kirim bukti transfer via whatsapp setelah klik tombol
+        Kirim bukti transfer via WhatsApp setelah klik tombol
     </p>
     <a href="https://wa.me/6281528590989" target="_blank" style="display:inline-block; margin-top:5px;">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/whatsapp.svg" alt="whatsapp" width="40">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" width="40">
     </a>
 </div>
 
@@ -145,53 +147,53 @@ body { display: none; }
 
 <script>
 let chart;
-const tbody = document.getelementbyid("tbody");
+const tbody = document.getElementById("tbody");
 
-const firebaseconfig = {
-    apikey: "aizasyauwajpoztwqtcnrhyv18kra5aadfcsygo",
-    authdomain: "jurnal-trade-pro.firebaseapp.com",
-    projectid: "jurnal-trade-pro"
+const firebaseConfig = {
+    apiKey: "AIzaSyAuWAjpoztwQtCnrHyV18kRA5AaDFcsyGo",
+    authDomain: "jurnal-trade-pro.firebaseapp.com",
+    projectId: "jurnal-trade-pro"
 };
-if (!firebase.apps.length) firebase.initializeapp(firebaseconfig);
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-const sidebar = document.getelementbyid("sidebar");
-const sidebartoggle = document.getelementbyid("sidebartoggle");
-const container = document.queryselector(".container");
+const sidebar = document.getElementById("sidebar");
+const sidebarToggle = document.getElementById("sidebarToggle");
+const container = document.querySelector(".container");
 
-sidebartoggle.addeventlistener("click", ()=>{
-    sidebar.classlist.toggle("active");
-    container.classlist.toggle("shift");
+sidebarToggle.addEventListener("click", ()=>{
+    sidebar.classList.toggle("active");
+    container.classList.toggle("shift");
 });
 
-function formatcurrency(val){
-    let currency = document.getelementbyid("currency").value;
-    return currency==="usd"? "$ "+val.tolocalestring("en-us") : "rp "+val.tolocalestring("id-id");
+function formatCurrency(val){
+    let currency = document.getElementById("currency").value;
+    return currency==="USD"? "$ "+val.toLocaleString("en-US") : "Rp "+val.toLocaleString("id-ID");
 }
-function formatdate(date){
-    let d = date.getdate().tostring().padstart(2,'0');
-    let m = (date.getmonth()+1).tostring().padstart(2,'0');
-    let y = date.getfullyear();
+function formatDate(date){
+    let d = date.getDate().toString().padStart(2,'0');
+    let m = (date.getMonth()+1).toString().padStart(2,'0');
+    let y = date.getFullYear();
     return `${d}-${m}-${y}`;
 }
 
-function generaterange(){
-    let startval = document.getelementbyid("startdate").value;
-    let endval = document.getelementbyid("enddate").value;
-    if(!startval || !endval){ alert("pilih tanggal dulu!"); return; }
+function generateRange(){
+    let startVal = document.getElementById("startDate").value;
+    let endVal = document.getElementById("endDate").value;
+    if(!startVal || !endVal){ alert("Pilih tanggal dulu!"); return; }
 
-    let start = new date(startval);
-    let end = new date(endval);
-    if(end<start){ alert("tanggal akhir tidak boleh sebelum tanggal mulai!"); return; }
+    let start = new Date(startVal);
+    let end = new Date(endVal);
+    if(end<start){ alert("Tanggal akhir tidak boleh sebelum tanggal mulai!"); return; }
 
-    tbody.innerhtml="";
-    let diffdays = math.floor((end-start)/(1000*60*60*24))+1;
-    for(let i=0;i<diffdays;i++){
-        let currentdate = new date(start);
-        currentdate.setdate(start.getdate()+i);
-        tbody.innerhtml += `<tr>
-            <td class="tanggal">${formatdate(currentdate)}</td>
+    tbody.innerHTML="";
+    let diffDays = Math.floor((end-start)/(1000*60*60*24))+1;
+    for(let i=0;i<diffDays;i++){
+        let currentDate = new Date(start);
+        currentDate.setDate(start.getDate()+i);
+        tbody.innerHTML += `<tr>
+            <td class="tanggal">${formatDate(currentDate)}</td>
             <td><input type="number" class="pl"></td>
             <td class="saldo">0</td>
         </tr>`;
@@ -200,65 +202,65 @@ function generaterange(){
 }
 
 function hitung(){
-    let saldoawal = parsefloat(document.getelementbyid("saldoawal").value)||0;
-    let saldo = saldoawal;
-    let prev = saldoawal;
-    let candledata = [];
+    let saldoAwal = parseFloat(document.getElementById("saldoAwal").value)||0;
+    let saldo = saldoAwal;
+    let prev = saldoAwal;
+    let candleData = [];
 
-    document.queryselectorall("#tbody tr").foreach((row,index)=>{
-        let input = row.queryselector(".pl");
-        let saldocell = row.queryselector(".saldo");
-        let pl = parsefloat(input.value)||0;
+    document.querySelectorAll("#tbody tr").forEach((row,index)=>{
+        let input = row.querySelector(".pl");
+        let saldoCell = row.querySelector(".saldo");
+        let pl = parseFloat(input.value)||0;
 
         saldo += pl;
-        saldocell.innertext = formatcurrency(saldo);
+        saldoCell.innerText = formatCurrency(saldo);
 
         let open = prev;
         let close = saldo;
-        let high = math.max(open,close);
-        let low = math.min(open,close);
+        let high = Math.max(open,close);
+        let low = Math.min(open,close);
 
-        candledata.push({x:index+1,y:[open,high,low,close]});
+        candleData.push({x:index+1,y:[open,high,low,close]});
         prev = saldo;
     });
 
-    updatechart(candledata);
-    updaterank(saldo - saldoawal);
+    updateChart(candleData);
+    updateRank(saldo - saldoAwal);
 }
 
-function updatechart(data){
+function updateChart(data){
     if(chart) chart.destroy();
-    chart = new apexcharts(document.queryselector("#chart"),{
+    chart = new ApexCharts(document.querySelector("#chart"),{
         chart:{type:'candlestick',height:400,background:'#161b22'},
         series:[{data:data}],
         theme:{mode:'dark'},
-        plotoptions:{candlestick:{colors:{upward:'#00ff88',downward:'#ff4d4d'}}},
+        plotOptions:{candlestick:{colors:{upward:'#00ff88',downward:'#ff4d4d'}}},
         xaxis:{type:'category'}
     });
     chart.render();
 }
 
-function updaterank(totalprofit){
-    let rank="🥉 newbie";
-    if(totalprofit>=100000000) rank="🏆 goldierd 🏆";
-    else if(totalprofit>=10000000) rank="🏆 legend";
-    else if(totalprofit>=1000000) rank="🎖️ master 🎖️";
-    else if(totalprofit>=100000) rank="🎖️ elit";
-    else if(totalprofit>=10000) rank="🥇 pro";
-    else if(totalprofit>=1000) rank="🥈 rookie";
-    else if(totalprofit<-10000000) rank="☣️ diseasesc";
-    else if(totalprofit<-1000000) rank="👾 high holler";
-    else if(totalprofit<-100000) rank="🎰 gembler";
-    else if(totalprofit<-10000) rank="📳 noob";
-    else if(totalprofit<-1000) rank="⚠️ newbot";
+function updateRank(totalProfit){
+    let rank="🥉 Newbie";
+    if(totalProfit>=100000000) rank="🏆 Goldierd 🏆";
+    else if(totalProfit>=10000000) rank="🏆 Legend";
+    else if(totalProfit>=1000000) rank="🎖️ Master 🎖️";
+    else if(totalProfit>=100000) rank="🎖️ Elit";
+    else if(totalProfit>=10000) rank="🥇 Pro";
+    else if(totalProfit>=1000) rank="🥈 Rookie";
+    else if(totalProfit<-10000000) rank="☣️ Diseasesc";
+    else if(totalProfit<-1000000) rank="👾 High Holler";
+    else if(totalProfit<-100000) rank="🎰 Gembler";
+    else if(totalProfit<-10000) rank="📳 Noob";
+    else if(totalProfit<-1000) rank="⚠️ Newbot";
 
-    document.getelementbyid("rankresult").innertext = rank;
+    document.getElementById("rankResult").innerText = rank;
 }
 
-const adminsidebar = document.getelementbyid("adminsidebar");
-adminsidebar.style.display = "none";
+const adminSidebar = document.getElementById("adminSidebar");
+adminSidebar.style.display = "none";
 
-auth.onauthstatechanged(async user=>{
+auth.onAuthStateChanged(async user=>{
     if(!user){
         window.location.replace("login.html");
         return;
@@ -272,62 +274,47 @@ auth.onauthstatechanged(async user=>{
 
     const data = doc.data();
 
-    if(data.expiredate && new date() > data.expiredate.todate()){
-        alert("langganan anda sudah habis!");
+    if(data.expireDate && new Date() > data.expireDate.toDate()){
+        alert("Langganan Anda sudah habis!");
         window.location.replace("pay.html");
         return;
     }
 
-    if(data.isadmin){
-        adminsidebar.style.display = "block";
-        adminsidebar.addeventlistener("click", ()=> window.location.href="adminlog.html");
+    if(data.Isadmin){
+        adminSidebar.style.display = "block";
+        adminSidebar.addEventListener("click", ()=> window.location.href="adminlog.html");
     }
 
-    // 🔓 tampilkan halaman setelah valid
+    // 🔓 TAMPILKAN HALAMAN SETELAH VALID
     document.body.style.display = "block";
 
-    // ===== session & inactivity =====
-    const session_duration = 60*60*1000; // 1 jam
-    const inactive_limit = 3*60*1000;    // 3 menit
-    let logouttimer, inactivitytimer;
+    const LOGOUT_TIME = 60 * 1000;
+    let logoutTimer;
 
-    function logoutuser(){
-        alert("anda logout karena tidak aktif atau session habis.");
-        auth.signout().then(()=> window.location.replace("login.html"));
+    function resetLogoutTimer(){
+        clearTimeout(logoutTimer);
+        logoutTimer = setTimeout(()=>{
+            alert("Anda tidak aktif selama 1 menit, logout otomatis.");
+            auth.signOut().then(()=> window.location.replace("login.html"));
+        }, LOGOUT_TIME);
     }
 
-    function resetinactivity(){
-        cleartimeout(inactivitytimer);
-        inactivitytimer = settimeout(logoutuser, inactive_limit);
-    }
-
-    ['mousemove','mousedown','keydown','scroll','touchstart'].foreach(evt=>{
-        window.addeventlistener(evt, resetinactivity);
+    ['mousemove','mousedown','keydown','scroll','touchstart'].forEach(evt=>{
+        window.addEventListener(evt, resetLogoutTimer);
     });
 
-    // simpan login timestamp di localstorage
-    let logintime = localstorage.getitem("logintime");
-    if(!logintime) localstorage.setitem("logintime", date.now());
-    logintime = parseint(localstorage.getitem("logintime"));
-
-    // timer session 1 jam
-    logouttimer = settimeout(()=>{
-        localstorage.removeitem("logintime");
-        logoutuser();
-    }, session_duration - (date.now() - logintime));
-
-    resetinactivity();
+    resetLogoutTimer();
 });
 
-document.getelementbyid("generaterange").addeventlistener("click", generaterange);
-document.addeventlistener("input", hitung);
+document.getElementById("generateRange").addEventListener("click", generateRange);
+document.addEventListener("input", hitung);
 
-document.getelementbyid("downloadpdf").addeventlistener("click",()=>{
-    html2pdf().from(document.getelementbyid("journal")).save("trading_journal.pdf");
+document.getElementById("downloadPdf").addEventListener("click",()=>{
+    html2pdf().from(document.getElementById("journal")).save("Trading_Journal.pdf");
 });
 
-document.getelementbyid("renewsubscription").addeventlistener("click",()=> window.location.href="pay.html");
-document.getelementbyid("logoutbtn").addeventlistener("click", ()=> auth.signout().then(()=>window.location.replace("login.html")));
+document.getElementById("renewSubscription").addEventListener("click",()=> window.location.href="pay.html");
+document.getElementById("logoutBtn").addEventListener("click", ()=> auth.signOut().then(()=>window.location.replace("login.html")));
 </script>
 </body>
 </html>
