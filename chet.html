@@ -1,5 +1,5 @@
-<!DOCTYPE html >
-<html  lang="id">
+<!DOCTYPE html>
+<html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +7,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
 <style>
 body{margin:0;font-family:'Segoe UI';background:#0f121b;color:#fff;padding:20px;}
@@ -16,6 +17,7 @@ h2{text-align:center;color:#00ff88;}
 .user-msg{background:#00ff88;color:black;align-self:flex-end;padding:10px;border-radius:15px;}
 .admin-msg{background:#ccc;color:black;align-self:flex-start;padding:10px;border-radius:15px;}
 .pending-msg{background:#ff9800;color:black;align-self:center;padding:6px;border-radius:10px;}
+.typing-msg{background:#444;color:#00ff88;align-self:flex-start;padding:6px;border-radius:10px;font-style:italic;}
 .chat-input{display:flex;gap:10px;margin-top:10px;}
 .chat-input input{flex:1;padding:10px;border-radius:20px;border:none;}
 .chat-input button{padding:10px 15px;border:none;border-radius:20px;background:#00ff88;font-weight:bold;}
@@ -28,14 +30,20 @@ h2{text-align:center;color:#00ff88;}
 
 <div id="emailForm">
 <input type="email" id="userEmailInput" placeholder="Masukkan email Anda"
-       style="width:70%; padding:8px; background:#111; color:white; border:1px solid #444; border-radius:5px;">
-<button onclick="startChat()"
- >minta bantuan</button>
+style="width:70%; padding:8px; background:#111; color:white; border:1px solid #444; border-radius:5px;">
+<button onclick="sendOTP()">Kirim Kode OTP</button>
+
+<br><br>
+
+<input type="text" id="otpInput" placeholder="Masukkan kode OTP"
+style="width:70%; padding:8px; background:#111; color:white; border:1px solid #444; border-radius:5px;">
+<button onclick="verifyOTP()">Verifikasi</button>
 </div>
 
 <div id="chatSection" style="display:none;">
 <h3 id="chatWith"></h3>
 <div id="chatWindow"></div>
+<div id="typingIndicator" style="display:none;" class="typing-msg">Admin sedang mengetik...</div>
 <div class="chat-input">
 <input type="text" id="userMsg" placeholder="Tulis pesan...">
 <button onclick="sendMsg()">Kirim</button>
@@ -44,6 +52,8 @@ h2{text-align:center;color:#00ff88;}
 </div>
 
 <script>
+emailjs.init("stnt0K-nOUmuV7qd0");
+
 const firebaseConfig={
 apiKey:"AIzaSyAuWAjpoztwQtCnrHyV18kRA5AaDFcsyGo",
 authDomain:"jurnal-trade-pro.firebaseapp.com",
@@ -54,27 +64,70 @@ if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 
 let userEmail=null;
+let generatedOTP=null;
 let unsubscribe=null;
+let unsubscribeTyping=null;
 
-async function startChat(){
-const emailInput=document.getElementById("userEmailInput").value.trim().toLowerCase();
-if(!emailInput){alert("Masukkan email!");return;}
+function generateOTP(){
+return Math.floor(100000 + Math.random()*900000).toString();
+}
 
-const userQuery=await db.collection("users").where("email","==",emailInput).get();
+async function sendOTP(){
+const email=document.getElementById("userEmailInput").value.trim().toLowerCase();
+if(!email){alert("Masukkan email!");return;}
+
+const userQuery=await db.collection("users").where("email","==",email).get();
 if(userQuery.empty){alert("Email tidak terdaftar.");return;}
 
-userEmail=emailInput;
+generatedOTP=generateOTP();
+userEmail=email;
 
+console.log("OTP Generated:", generatedOTP);
+
+/* ===========================
+   INI BAGIAN YANG DIPERBAIKI
+   =========================== */
+emailjs.send("service_phfouoy","template_7375nye",{
+to_email:userEmail,
+name:userEmail,
+email:userEmail,
+message:generatedOTP
+})
+.then(function(response){
+    alert("Kode OTP berhasil dikirim!");
+    console.log("SUCCESS", response);
+})
+.catch(function(error){
+    alert("Gagal kirim OTP!");
+    console.log("FAILED", error);
+});
+}
+
+function verifyOTP(){
+if(!generatedOTP){
+alert("Silakan kirim OTP dulu!");
+return;
+}
+
+const inputOTP=document.getElementById("otpInput").value.trim();
+
+if(inputOTP!==generatedOTP){
+alert("Kode OTP salah!");
+return;
+}
+
+startChat();
+}
+
+function startChat(){
 document.getElementById("emailForm").style.display="none";
 document.getElementById("chatSection").style.display="block";
 document.getElementById("chatWith").innerText="Chat dengan Admin ("+userEmail+")";
 
-await db.collection("tempChat").doc(userEmail).set({
+db.collection("tempChat").doc(userEmail).set({
 active:true,
 createdAt:Date.now()
 },{merge:true});
-
-if(unsubscribe)unsubscribe();
 
 unsubscribe=db.collection("tempChat")
 .doc(userEmail)
@@ -82,26 +135,26 @@ unsubscribe=db.collection("tempChat")
 .orderBy("timestamp")
 .onSnapshot(snapshot=>{
 const chatWindow=document.getElementById("chatWindow");
-chatWindow.inner ="";
-let adminReply=false;
-
+chatWindow.innerHTML="";
 snapshot.forEach(doc=>{
 const data=doc.data();
 const div=document.createElement("div");
 div.textContent=data.message;
 div.className=data.sender==="user"?"user-msg":"admin-msg";
-if(data.sender==="admin")adminReply=true;
 chatWindow.appendChild(div);
 });
-
-if(!adminReply){
-const pending=document.createElement("div");
-pending.textContent="Tinggalkan pesan untuk admin. . .";
-pending.className="pending-msg";
-chatWindow.appendChild(pending);
-}
-
 chatWindow.scrollTop=chatWindow.scrollHeight;
+});
+
+unsubscribeTyping=db.collection("tempChat")
+.doc(userEmail)
+.onSnapshot(doc=>{
+const data=doc.data();
+if(data && data.adminTyping){
+document.getElementById("typingIndicator").style.display="block";
+}else{
+document.getElementById("typingIndicator").style.display="none";
+}
 });
 }
 
@@ -132,12 +185,14 @@ messages.forEach(doc=>doc.ref.delete());
 await db.collection("tempChat").doc(userEmail).delete();
 
 if(unsubscribe)unsubscribe();
+if(unsubscribeTyping)unsubscribeTyping();
+
 userEmail=null;
+generatedOTP=null;
 
 document.getElementById("chatSection").style.display="none";
 document.getElementById("emailForm").style.display="block";
-document.getElementById("userEmailInput").value="";
 }
 </script>
 </body>
-</ >
+</html>
