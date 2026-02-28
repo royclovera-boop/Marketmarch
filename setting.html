@@ -75,6 +75,38 @@ button:hover{
   border-radius:5px;
   border:none;
 }
+
+/* ====== ABOUT POPUP ====== */
+#about-popup{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.8);
+  display:none;
+  justify-content:center;
+  align-items:center;
+}
+.about-box{
+  background:#1f1f1f;
+  width:90%;
+  max-width:400px;
+  padding:25px;
+  border-radius:12px;
+  text-align:left;
+  box-shadow:0 0 20px rgba(0,255,136,0.3);
+}
+.about-box h3{
+  color:#00ff88;
+  text-align:center;
+}
+.close-btn{
+  background:red;
+  color:white;
+  margin-top:15px;
+  width:100%;
+}
 </style>
 </head>
 <body>
@@ -96,6 +128,12 @@ button:hover{
     <button onclick="ubahField('password')">Ubah</button>
   </div>
 
+  <!-- Button Tentang Aplikasi -->
+  <div class="setting-row">
+    <label>Tentang Aplikasi</label>
+    <button onclick="bukaAbout()">Lihat</button>
+  </div>
+
   <!-- Input baru -->
   <div class="setting-row" id="input-row" style="display:none;">
     <input type="text" id="new-value" placeholder="">
@@ -113,6 +151,26 @@ button:hover{
     <button onclick="verifikasiOtp()">Verifikasi</button>
   </div>
 
+</div>
+
+<!-- ABOUT POPUP -->
+<div id="about-popup">
+  <div class="about-box">
+    <h3> TENTANG MARKET MARCH</h3>
+    <p><b>📒 Jurnal Trading</b><br>
+    Catat entry, exit, profit/loss, pair, strategi, dan emosi trading untuk evaluasi performa.</p>
+
+    <p><b>🛒 Toko Trading</b><br>
+    Menyediakan template jurnal, indikator premium, ebook, dan tools trading.</p>
+
+    <p><b>📊 Backtest</b><br>
+    Uji strategi menggunakan data historis sebelum digunakan di akun real.</p>
+
+    <p><b>🏆 Rank Jurnal</b><br>
+    Leaderboard trader berdasarkan konsistensi dan winrate.</p>
+
+    <button class="close-btn" onclick="tutupAbout()">Tutup</button>
+  </div>
 </div>
 
 <!-- EmailJS -->
@@ -235,7 +293,15 @@ async function verifikasiOtp(){
     alert("Gagal update: "+err.message);
   }
 }
+
+/* ===== ABOUT FUNCTION ===== */
+function bukaAbout(){
+  document.getElementById("about-popup").style.display="flex";
+}
+function tutupAbout(){
+  document.getElementById("about-popup").style.display="none";
+}
 </script>
 
 </body>
-      </html>
+    </html>
