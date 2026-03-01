@@ -258,8 +258,8 @@ function updateRank(totalProfit){
   else if(totalProfit<-10000000){ rankText="☣️ Diseasesc"; rankIMG="IMG/diseasesc.png"; }
   else if(totalProfit<-1000000){ rankText="👾 High Holler"; rankIMG="IMG/highholler.png"; }
   else if(totalProfit<-100000){ rankText="🎰 Gembler"; rankIMG="IMG/gembler.png"; }
-  else if(totalProfit<-10000){ rankText="📳 Noob"; rankImg="IMG/noob.png"; }
-  else if(totalProfit<-1000){ rankText="⚠️ Newbot"; rankImg="IMG/newbot.png"; }
+  else if(totalProfit<-10000){ rankText="📳 Noob";rankIMG="IMG/noob.png"; }
+  else if(totalProfit<-1000){ rankText="⚠️ Newbot";rankIMG="IMG/newbot.png"; }
 
   document.getElementById("rankResult").innerHTML = `<IMG src="${rankIMG}" alt="Rank">${rankText}`;
 }
@@ -291,4 +291,4 @@ document.getElementById("logoutBtn").addEventListener("click", ()=> auth.signOut
 
 </script>
 </body>
-                       </html>
+  </html>
