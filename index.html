@@ -108,8 +108,6 @@ IMG#fotoPreview { display:block; margin-top:10px; border-radius:50%; width:80px;
       <button id="generateRange">Tampilkan</button>
       <button id="downloadPdf">Download PDF</button>
     </div>
- 
-    </div>
   </div>
 
   <div class="card table-card">
@@ -206,6 +204,7 @@ function generateRange(){
   hitung();
 }
 
+// Fungsi utama hitung & update chart + rank
 function hitung(){
   let saldoAwal = parseFloat(document.getElementById("saldoAwal").value)||0;
   let saldo = saldoAwal;
@@ -231,6 +230,9 @@ function hitung(){
 
   updateChart(candleData);
   updateRank(saldo - parseFloat(document.getElementById("saldoAwal").value)||0);
+
+  // 🔹 Simpan otomatis ke localStorage setiap kali data berubah
+  localStorage.setItem("journalData", document.getElementById("journal").innerHTML);
 }
 
 function updateChart(data){
@@ -263,6 +265,7 @@ function updateRank(totalProfit){
 
   document.getElementById("rankResult").innerHTML = `<IMG src="${rankIMG}" alt="Rank">${rankText}`;
 }
+
 // Sidebar Admin
 const adminSidebar = document.getElementById("adminSidebar");
 adminSidebar.style.display = "none";
@@ -285,10 +288,16 @@ auth.onAuthStateChanged(async user=>{
 
 document.getElementById("generateRange").addEventListener("click", generateRange);
 document.addEventListener("input", hitung);
-document.getElementById("downloadPdf").addEventListener("click",()=> html2pdf().from(document.getElementById("journal")).save("Trading_Journal.pdf"));
+
+// 🔹 Tombol download PDF sekarang otomatis menyimpan data juga
+document.getElementById("downloadPdf").addEventListener("click", () => {
+  localStorage.setItem("journalData", document.getElementById("journal").innerHTML);
+  html2pdf().from(document.getElementById("journal")).save("Trading_Journal.pdf");
+});
+
 document.getElementById("renewSubscription").addEventListener("click",()=> window.location.href="pay.html");
 document.getElementById("logoutBtn").addEventListener("click", ()=> auth.signOut().then(()=>window.location.replace("login.html")));
 
 </script>
 </body>
-  </html>
+</html>
