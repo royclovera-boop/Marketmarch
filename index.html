@@ -72,9 +72,11 @@ IMG#fotoPreview { display:block; margin-top:10px; border-radius:50%; width:80px;
   <a href="home.html">🏠 Home</a>
   <a href="index.html">📊 Jurnal</a>
   <a href="toko.html">🛒 Toko</a>
-  <a href="backtes.html">🎮 Backtes</a>
   <a href="#" id="adminSidebar" style="display:none;">🛠️ Admin Log</a>
   <a href="setting.html">⚙️ Setting</a>
+  <a href="tahunan.html">📗 catatan tahunan</a>
+  <a href="bulanan.html">📝 Catatan bulanan</a>
+  <a href="backtes.html"> 🎮   Backtes strategi </a>
 </div>
 
 <!-- Logout -->
@@ -249,19 +251,19 @@ function updateChart(data){
 
 // Rank & Foto
 function updateRank(totalProfit){
-  let rankText="🥉 Newbie", rankIMG="IMG/newbie.png";
+  let rankText=" Newbie", rankIMG="IMG/newbie.png";
 
-  if(totalProfit>=100000000){ rankText="🏆 Goldierd 🏆"; rankIMG="IMG/goldierd.png"; }
-  else if(totalProfit>=10000000){ rankText="🏆 Legend"; rankIMG="IMG/legend.png"; }
-  else if(totalProfit>=1000000){ rankText="🎖️ Master 🎖️"; rankIMG="IMG/master.png"; }
-  else if(totalProfit>=100000){ rankText="🎖️ Elit"; rankIMG="IMG/elit.png"; }
-  else if(totalProfit>=10000){ rankText="🥇 Pro"; rankIMG="IMG/pro.png"; }
-  else if(totalProfit>=1000){ rankText="🥈 Rookie"; rankIMG="IMG/rookie.png"; }
-  else if(totalProfit<-10000000){ rankText="☣️ Diseasesc"; rankIMG="IMG/diseasesc.png"; }
-  else if(totalProfit<-1000000){ rankText="👾 High Holler"; rankIMG="IMG/highholler.png"; }
-  else if(totalProfit<-100000){ rankText="🎰 Gembler"; rankIMG="IMG/gembler.png"; }
-  else if(totalProfit<-10000){ rankText="📳 Noob";rankIMG="IMG/noob.png"; }
-  else if(totalProfit<-1000){ rankText="⚠️ Newbot";rankIMG="IMG/newbot.png"; }
+  if(totalProfit>=100000000){ rankText=" mythic "; rankIMG="IMG/mythic.png"; }
+  else if(totalProfit>=10000000){ rankText=" Legend"; rankIMG="IMG/legend.png"; }
+  else if(totalProfit>=1000000){ rankText=" Master "; rankIMG="IMG/master.png"; }
+  else if(totalProfit>=100000){ rankText=" Elit"; rankIMG="IMG/elit.png"; }
+  else if(totalProfit>=10000){ rankText=" Pro"; rankIMG="IMG/pro.png"; }
+  else if(totalProfit>=1000){ rankText=" Rookie"; rankIMG="IMG/rookie.png"; }
+  else if(totalProfit<-10000000){ rankText="underdog"; rankIMG="IMG/underdog.png"; }
+  else if(totalProfit<-1000000){ rankText="gembler"; rankIMG="IMG/gembler.png"; }
+  else if(totalProfit<-100000){ rankText="bot"; rankIMG="IMG/bot.png"; }
+  else if(totalProfit<-10000){ rankText=" Noob";rankIMG="IMG/noob.png"; }
+  else if(totalProfit<-1000){ rankText="unranked";rankIMG="IMG/unranked.png"; }
 
   document.getElementById("rankResult").innerHTML = `<IMG src="${rankIMG}" alt="Rank">${rankText}`;
 }
@@ -300,4 +302,4 @@ document.getElementById("logoutBtn").addEventListener("click", ()=> auth.signOut
 
 </script>
 </body>
-</html>
+          </html>
