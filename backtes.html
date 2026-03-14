@@ -18,7 +18,6 @@ input, button, select{width:100%; padding:8px; margin:5px 0; border-radius:5px; 
 input{background:#111;color:white;}
 button{color:black; font-weight:bold; cursor:pointer; border-radius:5px;}
 button:hover{opacity:0.9;}
-/* Style untuk tombol Buy/Sell */
 .btn-buy{background:limegreen;}
 .btn-sell{background:#ff4d4d;}
 .btn-group{display:flex;gap:10px;}
@@ -64,7 +63,6 @@ button:hover{opacity:0.9;}
 <label>Jam London</label>
 <input type="text" id="londonTime" readonly>
 
-<!-- Tambahkan fitur Buy/Sell sebagai tombol pilihan -->
 <label>posisi</label>
 <div class="btn-group">
   <button id="buyBtn" class="btn-buy">BUY</button>
@@ -79,9 +77,8 @@ button:hover{opacity:0.9;}
 </div>
 
 <div class="card">
-<h2>Grafik P/L Cumulative <span id="timeframeTitle">[H1]</span></h2>
+<h2>Grafik P/L Total <span id="timeframeTitle">[H1]</span></h2>
 <select id="timeframeSelect">
-  <option value="H1">H1</option>
   <option value="D1">D1</option>
   <option value="W1">W1</option>
   <option value="M1">M1</option>
@@ -91,12 +88,17 @@ button:hover{opacity:0.9;}
 </div>
 
 <script>
-const firebaseConfig={
-  apiKey:"AIzaSyAuWAjpoztwQtCnrHyV18kRA5AaDFcsyGo",
-  authDomain:"jurnal-trade-pro.firebaseapp.com",
-  projectId:"jurnal-trade-pro"
+const firebaseConfig = {
+  apiKey: "__FIREBASE_APIKEY__",
+  authDomain: "__FIREBASE_AUTHDOMAIN__",
+  projectId: "__FIREBASE_PROJECTID__"
 };
+
+// Inisialisasi Firebase
 if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
 const auth=firebase.auth();
 const db=firebase.firestore();
 
@@ -105,7 +107,7 @@ const statusEl=document.getElementById("status");
 const notesDiv=document.getElementById("notes");
 const timeframeSelect=document.getElementById("timeframeSelect");
 const timeframeTitle=document.getElementById("timeframeTitle");
-let tradeType=""; // Variabel untuk menyimpan tipe trade (Buy/Sell)
+let tradeType="";
 
 function updateTime(){
   const now=new Date();
@@ -129,7 +131,6 @@ auth.onAuthStateChanged(user=>{
   }
 });
 
-/* ================= TOMBOL BUY/SELL ================= */
 document.getElementById("buyBtn").addEventListener("click", async ()=>{
   tradeType="BUY";
   submitTrade();
@@ -140,18 +141,15 @@ document.getElementById("sellBtn").addEventListener("click", async ()=>{
   submitTrade();
 });
 
-/* ================= SUBMIT TRADE ================= */
 async function submitTrade(){
   if(!uid){
     statusEl.innerText="Silakan login terlebih dahulu!";
     return;
   }
-
   if(!tradeType){
     statusEl.innerText="Pilih tipe trade (Buy/Sell) terlebih dahulu!";
     return;
   }
-
   const pair=document.getElementById("pairInput").value.toUpperCase();
   const entry=parseFloat(document.getElementById("entryInput").value);
   const sl=parseFloat(document.getElementById("slInput").value);
@@ -159,7 +157,7 @@ async function submitTrade(){
   const wib=document.getElementById("timeInput").value;
   const london=document.getElementById("londonTime").value;
   const timestamp=Date.now();
-  const selectedTimeframe=timeframeSelect.value; // Ambil timeframe yang dipilih
+  const selectedTimeframe=timeframeSelect.value;
 
   if(!pair||isNaN(entry)||isNaN(sl)||isNaN(tp)){
     statusEl.innerText="Isi semua field dengan benar!";
@@ -179,52 +177,45 @@ async function submitTrade(){
     uid,
     email:displayName,
     pair,
-    tradeType, // Simpan tipe trade ke database
+    tradeType,
     entry,
     sl,
     tp,
     wib,
     london,
     timestamp,
-    timeframe:selectedTimeframe // Simpan timeframe ke database
+    timeframe:selectedTimeframe
   });
 
   statusEl.style.color="#00ff88";
   statusEl.innerText=`Trade ${tradeType} untuk ${pair} berhasil dibuat!`;
 }
 
-/* ================= REALTIME DATA DENGAN FILTER TIMEFRAME ================= */
 function startRealtime(){
-  // Dengar perubahan pada dropdown timeframe
   timeframeSelect.addEventListener("change", ()=>{
     const selectedTimeframe=timeframeSelect.value;
     timeframeTitle.innerText=`[${selectedTimeframe}]`;
     loadTradesByTimeframe(selectedTimeframe);
   });
-
-  // Muat data pertama kali dengan timeframe default (H1)
   loadTradesByTimeframe(timeframeSelect.value);
 }
 
-// Fungsi untuk memuat data trade berdasarkan timeframe yang dipilih
 async function loadTradesByTimeframe(selectedTimeframe){
   notesDiv.innerHTML="";
   let totalPL=0;
-  let chartData=[];
+  let cumulativePL=[];
   let trades=[];
 
-  // Ambil data trade yang sesuai dengan uid dan timeframe yang dipilih
   const snapshot=await db.collection("pendingTrades")
     .where("uid","==",uid)
     .where("confirmed","==",true)
-    .where("timeframe","==",selectedTimeframe) // Filter berdasarkan timeframe
+    .where("timeframe","==",selectedTimeframe)
     .get();
 
   snapshot.forEach(doc=>{
     trades.push(doc.data());
   });
 
-  // Urutkan berdasarkan timestamp dari yang paling lama ke terbaru
   trades.sort((a,b)=>(a.timestamp||0)-(b.timestamp||0));
 
   trades.forEach((d,index)=>{
@@ -242,24 +233,41 @@ async function loadTradesByTimeframe(selectedTimeframe){
       <br>WIB: ${d.wib} | London: ${d.london}
       <br>Timeframe: ${d.timeframe}
     `;
-    // Tambahkan warna border sesuai tipe trade
     div.style.borderLeftColor=typeColor;
     notesDiv.appendChild(div);
 
     totalPL+=pl;
-    chartData.push({x:new Date(d.timestamp||Date.now()), y:totalPL});
+    cumulativePL.push(totalPL);
   });
 
-  updateChart(chartData);
+  updateChart(cumulativePL);
   updateRank(totalPL);
 }
 
-/* ================= GRAFIK DENGAN WARNA KUNING DAN GARIS KECIL ================= */
-function updateChart(data){
+function updateChart(cumulativePL){
   if(chart) chart.destroy();
+
+  // Siapkan data candlestick berdasarkan total P/L kumulatif
+  let chartData=[];
+  cumulativePL.forEach((total, index)=>{
+    // Nilai candlestick berdasarkan P/L kumulatif
+    const prevTotal=index>0?cumulativePL[index-1]:0;
+    const open=prevTotal;
+    const close=total;
+    const high=Math.max(open, close);
+    const low=Math.min(open, close);
+    const isProfit=close>=open;
+
+    chartData.push({
+      x: `#${index+1}`, // Jumlah candle sesuai jumlah transaksi
+      y: [open, high, low, close],
+      isProfit: isProfit
+    });
+  });
+
   chart=new ApexCharts(document.querySelector("#chart"),{
     chart:{
-      type:'line',
+      type:'candlestick',
       height:350,
       background:'#161b22',
       toolbar:{
@@ -272,43 +280,54 @@ function updateChart(data){
       }
     },
     series:[{
-      name:'P/L Cumulative',
-      data:data,
-      color:'#ffff00', // Ubah warna garis grafik menjadi kuning
-      stroke:{
-        width:2, // Ubah ukuran garis menjadi kecil (bisa disesuaikan, angka 2 cukup tipis)
-        curve:'smooth'
-      }
+      name:'Total P/L',
+      data:chartData
     }],
     theme:{mode:'dark'},
     xaxis:{
-      type:'datetime',
+      type:'category',
       labels:{
-        style:{
-          colors:'#fff'
-        }
+        style:{colors:'#fff'},
+        title:{text:'Nomor Transaksi', style:{color:'#fff'}}
       }
     },
     yaxis:{
-      title:{text:'P/L', style:{color:'#fff'}},
-      labels:{
-        style:{
-          colors:'#fff'
-        }
-      }
+      title:{text:'Total P/L', style:{color:'#fff'}},
+      labels:{style:{colors:'#fff'}}
     },
     tooltip:{
-      x:{format:'dd MMM yyyy HH:mm'},
-      theme:'dark'
+      theme:'dark',
+      custom:function({series, seriesIndex, dataPointIndex, w}){
+        const data=w.globals.series[seriesIndex][dataPointIndex];
+        const plColor=data.isProfit?'#00ff88':'#ff4d4d';
+        const status=data.isProfit?'Profit':'Loss';
+        
+        return `
+          <div style="padding:5px;">
+            <b>Transaksi ${data.x}</b><br>
+            Open (Total P/L Sebelumnya): ${data.y[0]}<br>
+            High: ${data.y[1]}<br>
+            Low: ${data.y[2]}<br>
+            Close (Total P/L Sekarang): ${data.y[3]}<br>
+            Status: <span style="color:${plColor}">${status}</span>
+          </div>
+        `;
+      }
     },
-    grid:{
-      borderColor:'#333'
+    grid:{borderColor:'#333'},
+    plotOptions:{
+      candlestick:{
+        colors:{
+          upward:'#00ff88',
+          downward:'#ff4d4d'
+        },
+        wick:{useFillColor:true}
+      }
     }
   });
   chart.render();
 }
 
-/* ================= RANK ================= */
 function updateRank(totalProfit){
 let rankText="Newbie",rankIMG="IMG/newbie.png";
 
