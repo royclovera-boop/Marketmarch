@@ -6,7 +6,7 @@ command = "sed -i \
    s/__EMAILJS_SERVICEID__/'\"$EMAILJS_serviceid\"'/g; \
    s/__EMAILJS_TEMPLATEID__/'\"$EMAILJS_TEMPLATEID\"'/g' \
   adminlog.html backtes.html bulanan.html buy.html chet.html index.html \
-  kasir.html pay.html permainan.html register.html setting.html tahunan.html \
+  kasir.html login.html main.js pay.html permainan.html register.html setting.html tahunan.html \
   toko.html undian.html"
 publish = "."
 
