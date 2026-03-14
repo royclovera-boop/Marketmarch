@@ -69,14 +69,18 @@ IMG#fotoPreview { display:block; margin-top:10px; border-radius:50%; width:80px;
 
 <!-- Sidebar -->
 <div id="sidebar">
-  <a href="home.html">🏠 Home</a>
-  <a href="index.html">📊 Jurnal</a>
+  <a href="index.html">🏠 Rumah</a>
   <a href="toko.html">🛒 Toko</a>
   <a href="#" id="adminSidebar" style="display:none;">🛠️ Admin Log</a>
-  <a href="setting.html">⚙️ Setting</a>
-  <a href="tahunan.html">📗 catatan tahunan</a>
+  <a href="setting.html">⚙️ pengaturan</a>
+  <a href="kasir.html"> 🔦 Cahaya</a>
+  <a href="tahunan.html">📗 Catatan tahunan</a>
   <a href="bulanan.html">📝 Catatan bulanan</a>
   <a href="backtes.html"> 🎮   Backtes strategi </a>
+  <a href="permainan.html">🕹️   Permainan  </a
+  <a href="undian.html"> 🗳️   Undian berhadiah  </a>
+  
+  
 </div>
 
 <!-- Logout -->
@@ -153,13 +157,16 @@ IMG#fotoPreview { display:block; margin-top:10px; border-radius:50%; width:80px;
 let chart;
 const tbody = document.getElementById("tbody");
 const firebaseConfig = {
-  apiKey: "AIzaSyAuWAjpoztwQtCnrHyV18kRA5AaDFcsyGo",
-  authDomain: "jurnal-trade-pro.firebaseapp.com",
-  projectId: "jurnal-trade-pro"
+  apiKey: "__FIREBASE_APIKEY__",
+  authDomain: "__FIREBASE_AUTHDOMAIN__",
+  projectId: "__FIREBASE_PROJECTID__"
 };
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+// Inisialisasi Firebase
+if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+
 const storage = firebase.storage();
 
 const sidebar = document.getElementById("sidebar");
@@ -302,4 +309,4 @@ document.getElementById("logoutBtn").addEventListener("click", ()=> auth.signOut
 
 </script>
 </body>
-          </html>
+  </html>
