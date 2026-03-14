@@ -70,17 +70,20 @@ button:hover{opacity:0.8;}
 
 <script>
 // ================= EMAILJS =================
-emailjs.init("stnt0K-nOUmuV7qd0");
+emailjs.init("__EMAILJS_PUBLICKEY__");
 
 // ================= FIREBASE =================
 const firebaseConfig = {
-    apiKey: "AIzaSyAuWAjpoztwQtCnrHyV18kRA5AaDFcsyGo",
-    authDomain: "jurnal-trade-pro.firebaseapp.com",
-    projectId: "jurnal-trade-pro"
+  apiKey: "__FIREBASE_APIKEY__",
+  authDomain: "__FIREBASE_AUTHDOMAIN__",
+  projectId: "__FIREBASE_PROJECTID__"
 };
-firebase.initializeApp(firebaseConfig);
+
+// Inisialisasi Firebase
+if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+
 
 // ================= REGISTER & OTP =================
 let tempEmail = "";
@@ -124,7 +127,7 @@ document.getElementById("register-form").addEventListener("submit", async functi
     });
 
     // kirim OTP ke EmailJS
-    emailjs.send("service_phfouoy", "template_7375nye", {
+    emailjs.send("__EMAILJS_SERVICEID__", "__EMAILJS_TEMPLATEID__", {
         to_email: tempEmail,
         name: tempEmail,
         email: tempEmail,
@@ -195,4 +198,4 @@ document.getElementById("verifyBtn").addEventListener("click", async function(){
 </script>
 
 </body>
-    </html>
+        </html>
