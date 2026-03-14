@@ -61,7 +61,7 @@ font-weight:bold;
 <p style="opacity:0.7;font-size:14px;">
 Grafik hanya menampilkan tahun 2000 – 3000.  
 Tahun dibaca dari label (contoh: "Maret 2000").  
-Jika tidak ada, sistem memakai timestamp otomatis.
+Jika tidak ada, data sistem akan eror.
 </p>
 
 </div>
@@ -69,17 +69,16 @@ Jika tidak ada, sistem memakai timestamp otomatis.
 <script>
 
 const firebaseConfig = {
-apiKey: "AIzaSyAuWAjpoztwQtCnrHyV18kRA5AaDFcsyGo",
-authDomain: "jurnal-trade-pro.firebaseapp.com",
-projectId: "jurnal-trade-pro"
+  apiKey: "__FIREBASE_APIKEY__",
+  authDomain: "__FIREBASE_AUTHDOMAIN__",
+  projectId: "__FIREBASE_PROJECTID__"
 };
 
-if(!firebase.apps.length){
-firebase.initializeApp(firebaseConfig);
-}
-
+// Inisialisasi Firebase
+if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+
 
 let chart;
 let uid="";
@@ -247,4 +246,4 @@ ${rankText}
 </script>
 
 </body>
-  </html>
+</html>
