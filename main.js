@@ -1,11 +1,12 @@
 /* ================= FIREBASE ================= */
 const firebaseConfig = {
-  apiKey: "AIzaSyAuWAjpoztwQtCnrHyV18kRA5AaDFcsyGo",
-  authDomain: "jurnal-trade-pro.firebaseapp.com",
-  projectId: "jurnal-trade-pro"
+  apiKey: "__FIREBASE_APIKEY__",
+  authDomain: "__FIREBASE_AUTHDOMAIN__",
+  projectId: "__FIREBASE_PROJECTID__"
 };
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
+// Inisialisasi Firebase
+if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
@@ -44,7 +45,7 @@ registerForm?.addEventListener("submit", async (e) => {
   otpExpireTime = Date.now() + 5*60*1000; // OTP berlaku 5 menit
 
   // Kirim OTP via EmailJS
-  emailjs.send("service_phfouoy", "template_7375nye", {
+  emailjs.send("__EMAILJS_SERVICEID__", "__EMAILJS_TEMPLATEID__", {
     name: tempEmail,
     email: tempEmail,
     message: "Kode OTP kamu adalah: " + generatedOTP
