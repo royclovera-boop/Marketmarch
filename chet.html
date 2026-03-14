@@ -7,6 +7,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
 <style>
@@ -52,16 +53,30 @@ style="width:70%; padding:8px; background:#111; color:white; border:1px solid #4
 </div>
 
 <script>
-emailjs.init("stnt0K-nOUmuV7qd0");
+emailjs.init("__EMAILJS_PUBLICKEY__");
 
-const firebaseConfig={
-apiKey:"AIzaSyAuWAjpoztwQtCnrHyV18kRA5AaDFcsyGo",
-authDomain:"jurnal-trade-pro.firebaseapp.com",
-projectId:"jurnal-trade-pro"
+const firebaseConfig = {
+  apiKey: "__FIREBASE_APIKEY__",
+  authDomain: "__FIREBASE_AUTHDOMAIN__",
+  projectId: "__FIREBASE_PROJECTID__"
 };
 
-if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
-const db=firebase.firestore();
+// Inisialisasi Firebase
+if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+
+/* =========================
+   LOGIN ANONYMOUS OTOMATIS
+   ========================= */
+auth.signInAnonymously()
+.then(()=>{
+console.log("Login anonymous berhasil");
+})
+.catch((error)=>{
+console.log("Auth error:",error);
+});
 
 let userEmail=null;
 let generatedOTP=null;
@@ -84,22 +99,19 @@ userEmail=email;
 
 console.log("OTP Generated:", generatedOTP);
 
-/* ===========================
-   INI BAGIAN YANG DIPERBAIKI
-   =========================== */
-emailjs.send("service_phfouoy","template_7375nye",{
+emailjs.send("__EMAILJS_SERVICEID__","__EMAILJS_TEMPLATEID__",{
 to_email:userEmail,
 name:userEmail,
 email:userEmail,
 message:generatedOTP
 })
 .then(function(response){
-    alert("Kode OTP berhasil dikirim!");
-    console.log("SUCCESS", response);
+alert("Kode OTP berhasil dikirim!");
+console.log("SUCCESS", response);
 })
 .catch(function(error){
-    alert("Gagal kirim OTP!");
-    console.log("FAILED", error);
+alert("Gagal kirim OTP!");
+console.log("FAILED", error);
 });
 }
 
@@ -194,5 +206,6 @@ document.getElementById("chatSection").style.display="none";
 document.getElementById("emailForm").style.display="block";
 }
 </script>
+
 </body>
-</html>
+   </html>
