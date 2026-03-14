@@ -81,11 +81,13 @@ button:disabled { background:gray; cursor:not-allowed; }
 
 <script>
 const firebaseConfig = {
-  apiKey: "AIzaSyAuWAjpoztwQtCnrHyV18kRA5AaDFcsyGo",
-  authDomain: "jurnal-trade-pro.firebaseapp.com",
-  projectId: "jurnal-trade-pro"
+  apiKey: "__FIREBASE_APIKEY__",
+  authDomain: "__FIREBASE_AUTHDOMAIN__",
+  projectId: "__FIREBASE_PROJECTID__"
 };
-firebase.initializeApp(firebaseConfig);
+
+// Inisialisasi Firebase
+if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
