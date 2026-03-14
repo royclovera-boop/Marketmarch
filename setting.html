@@ -185,16 +185,19 @@ button:hover{
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
 <script>
-emailjs.init("stnt0K-nOUmuV7qd0");
+emailjs.init("__EMAILJS_PUBLICKEY__");
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAuWAjpoztwQtCnrHyV18kRA5AaDFcsyGo",
-  authDomain: "jurnal-trade-pro.firebaseapp.com",
-  projectId: "jurnal-trade-pro"
+  apiKey: "__FIREBASE_APIKEY__",
+  authDomain: "__FIREBASE_AUTHDOMAIN__",
+  projectId: "__FIREBASE_PROJECTID__"
 };
-firebase.initializeApp(firebaseConfig);
+
+// Inisialisasi Firebase
+if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+
 
 let currentUserEmail = "";
 let currentUserUid = "";
@@ -245,7 +248,7 @@ async function kirimOtp(){
   let targetEmail = currentUserEmail;
   if(fieldSimpan==="email") targetEmail = newValue;
 
-  emailjs.send("service_phfouoy","template_7375nye",{
+  emailjs.send("__EMAILJS_SERVICEID__","__EMAILJS_TEMPLATEID__",{
     name: currentUserEmail,
     email: targetEmail,
     message: "Kode OTP kamu adalah: "+otpSimpan
@@ -304,6 +307,7 @@ function bukaAbout(){
 }
 function tutupAbout(){
   document.getElementById("about-popup").style.display="none";
+  
 }
 </script>
 
