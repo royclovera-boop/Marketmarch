@@ -85,12 +85,15 @@ transition:0.4s ease;
 
 <script>
 const firebaseConfig = {
-apiKey: "AIzaSyAuWAjpoztwQtCnrHyV18kRA5AaDFcsyGo",
-authDomain: "jurnal-trade-pro.firebaseapp.com",
-projectId: "jurnal-trade-pro"
+  apiKey: "__FIREBASE_APIKEY__",
+  authDomain: "__FIREBASE_AUTHDOMAIN__",
+  projectId: "__FIREBASE_PROJECTID__"
 };
 
+// Inisialisasi Firebase
 if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
 const auth = firebase.auth();
 const db = firebase.firestore();
