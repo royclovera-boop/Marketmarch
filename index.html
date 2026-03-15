@@ -57,9 +57,9 @@
 .top-card div { margin-bottom:10px; }
 .top-card label { display:block; margin-bottom:4px; }
 .rank-box { margin-top:20px; text-align:center; }
-.rank-box IMG { vertical-align:middle; margin-right:8px; width:100px; border-radius:5px; }
+.rank-box img { vertical-align:middle; margin-right:8px; width:100px; border-radius:5px; }
 
-IMG#fotoPreview { display:block; margin-top:10px; border-radius:50%; width:80px; }
+img#fotoPreview { display:block; margin-top:10px; border-radius:50%; width:80px; }
 </style>
 </head>
 <body>
@@ -134,7 +134,7 @@ IMG#fotoPreview { display:block; margin-top:10px; border-radius:50%; width:80px;
     <div class="rank-box">
       <h3>RANK TRADING</h3>
       <div id="rankResult">
-        <IMG src="IMG/newbie.png" alt="Rank"> 🥉 Newbie
+        <img src="img/newbie.png" alt="Rank"> 🥉 Newbie
       </div>
     </div>
   </div>
@@ -147,7 +147,7 @@ IMG#fotoPreview { display:block; margin-top:10px; border-radius:50%; width:80px;
       Kirim bukti transfer via WhatsApp setelah klik tombol
     </p>
     <a href="https://wa.me/6281528590989" target="_blank">
-      <IMG src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" width="40">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" width="40">
     </a>
   </div>
 
@@ -258,21 +258,21 @@ function updateChart(data){
 
 // Rank & Foto
 function updateRank(totalProfit){
-  let rankText=" Newbie", rankIMG="IMG/newbie.png";
+  let rankText=" Newbie", rankimg="img/newbie.png";
 
-  if(totalProfit>=100000000){ rankText=" mythic "; rankIMG="IMG/mythic.png"; }
-  else if(totalProfit>=10000000){ rankText=" Legend"; rankIMG="IMG/legend.png"; }
-  else if(totalProfit>=1000000){ rankText=" Master "; rankIMG="IMG/master.png"; }
-  else if(totalProfit>=100000){ rankText=" Elit"; rankIMG="IMG/elit.png"; }
-  else if(totalProfit>=10000){ rankText=" Pro"; rankIMG="IMG/pro.png"; }
-  else if(totalProfit>=1000){ rankText=" Rookie"; rankIMG="IMG/rookie.png"; }
-  else if(totalProfit<-10000000){ rankText="underdog"; rankIMG="IMG/underdog.png"; }
-  else if(totalProfit<-1000000){ rankText="gembler"; rankIMG="IMG/gembler.png"; }
-  else if(totalProfit<-100000){ rankText="bot"; rankIMG="IMG/bot.png"; }
-  else if(totalProfit<-10000){ rankText=" Noob";rankIMG="IMG/noob.png"; }
-  else if(totalProfit<-1000){ rankText="unranked";rankIMG="IMG/unranked.png"; }
+  if(totalProfit>=100000000){ rankText=" mythic "; rankimg="img/mythic.png"; }
+  else if(totalProfit>=10000000){ rankText=" Legend"; rankimg="img/legend.png"; }
+  else if(totalProfit>=1000000){ rankText=" Master "; rankimg="img/master.png"; }
+  else if(totalProfit>=100000){ rankText=" Elit"; rankimg="img/elit.png"; }
+  else if(totalProfit>=10000){ rankText=" Pro"; rankimg="img/pro.png"; }
+  else if(totalProfit>=1000){ rankText=" Rookie"; rankimg="img/rookie.png"; }
+  else if(totalProfit<-10000000){ rankText="underdog"; rankimg="img/underdog.png"; }
+  else if(totalProfit<-1000000){ rankText="gembler"; rankimg="img/gembler.png"; }
+  else if(totalProfit<-100000){ rankText="bot"; rankimg="img/bot.png"; }
+  else if(totalProfit<-10000){ rankText=" Noob";rankimg="img/noob.png"; }
+  else if(totalProfit<-1000){ rankText="unranked";rankimg="img/unranked.png"; }
 
-  document.getElementById("rankResult").innerHTML = `<IMG src="${rankIMG}" alt="Rank">${rankText}`;
+  document.getElementById("rankResult").innerHTML = `<img src="${rankimg}" alt="Rank">${rankText}`;
 }
 
 // Sidebar Admin
@@ -309,4 +309,4 @@ document.getElementById("logoutBtn").addEventListener("click", ()=> auth.signOut
 
 </script>
 </body>
-  </html>
+    </html>
