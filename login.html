@@ -109,10 +109,10 @@ if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// rankIMG untuk menentukan background
-let rankIMG = "IMG/wallpaper.png";
-if(rankIMG === "IMG/wallpaper.png"){
-    document.body.style.backgroundImage = "url('IMG/wallpaper.png')";
+// rankimg untuk menentukan background
+let rankimg = "img/wallpaper.png";
+if(rankimg === "img/wallpaper.png"){
+    document.body.style.backgroundImage = "url('img/wallpaper.png')";
 }
 
 async function login(){
